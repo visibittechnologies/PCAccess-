@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PCAccess - FileAccessAgent & Comparison Guide (English)</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 13.5px;
+    background: #fff;
+    margin: 0; padding: 0;
+  }
+  .header-card {
+    background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    color: #fff;
+    padding: 24px 28px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(6,95,70,0.15);
+  }
+  .header-card h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 700; }
+  .header-card .subtitle { font-size: 14px; color: #a7f3d0; margin-bottom: 12px; }
+  .badge-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 18px;
+    color: #065f46;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+  .alert-box {
+    background: #ecfdf5;
+    border-left: 4px solid #059669;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .alert-box.info { background: #eff6ff; border-left-color: #2563eb; }
+  .alert-box.warning { background: #fffbeb; border-left-color: #d97706; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px 0;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background-color: #f1f5f9; color: #0f172a; font-weight: 700; }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: #059669;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+  .page-break { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+  .footer {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <h1>PCAccess — FileAccessAgent & Dual-Agent Guide</h1>
+  <div class="subtitle">Host Workstation Sharing Service & Architectural Comparison</div>
+  <div class="badge-row">
+    <span class="badge">English Edition</span>
+    <span class="badge">Host Workstation</span>
+    <span class="badge">SignalR WebSocket</span>
+    <span class="badge">Windows Service</span>
+  </div>
+</div>
+
+<h2>1. Overview: What is FileAccessAgent?</h2>
+<p>
+  <strong>FileAccessAgent</strong> is a secure background service that runs on the <strong>Host PC / Office Server</strong> where company files physically reside.
+</p>
+<div class="alert-box">
+  <strong>Key Architecture:</strong> Similar to TeamViewer or AnyDesk, it establishes an <strong>outbound-only WebSocket connection</strong> via SignalR to <code>https://pcaccess.ourdemos.com</code>. It requires <strong>no public IP, no static IP, and no router port-forwarding</strong>.
+</div>
+
+<h2>2. Pairing Workflow (Step-by-Step)</h2>
+<div class="avoid-break">
+  <p><span class="step-num">1</span> <strong>Run Agent:</strong> Double-click <code>run.bat</code> on the Host PC.</p>
+  <p><span class="step-num">2</span> <strong>View 6-Digit PIN:</strong> A temporary 6-digit pairing code (e.g., <code>582-194</code>) appears on the console, valid for 15 minutes.</p>
+  <p><span class="step-num">3</span> <strong>Pair via Web Portal:</strong> Log in to the Admin Dashboard (<code>https://pcaccess.ourdemos.com/Admin/DeviceFolders</code>) and submit the 6-digit code.</p>
+  <p><span class="step-num">4</span> <strong>Device Becomes ONLINE:</strong> A cryptographic token binds the device permanently. The web dashboard will now show the device as <strong>ONLINE</strong>.</p>
+  <p><span class="step-num">5</span> <strong>Assign Folders:</strong> Register local physical paths (e.g. <code>D:\CompanyFiles</code>) and grant permissions to users.</p>
+</div>
+
+<h2>3. Windows Service Controls (24x7 Unattended Operation)</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Script</th>
+      <th>Command</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong><code>install-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --install</code></td>
+      <td>Registers the agent as a Windows Service that automatically starts on PC boot.</td>
+    </tr>
+    <tr>
+      <td><strong><code>start-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --start</code></td>
+      <td>Starts the installed Windows Service.</td>
+    </tr>
+    <tr>
+      <td><strong><code>stop-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --stop</code></td>
+      <td>Halts the running service safely.</td>
+    </tr>
+    <tr>
+      <td><strong><code>check-status.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --status</code></td>
+      <td>Checks if the service is running and displays recent log entries.</td>
+    </tr>
+    <tr>
+      <td><strong><code>uninstall-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --uninstall</code></td>
+      <td>Unregisters and removes the service from Windows.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>4. Deep Comparison: UserLoginAgent vs FileAccessAgent</h2>
+<table class="avoid-break">
+  <thead>
+    <tr>
+      <th style="width: 22%;">Feature</th>
+      <th style="width: 39%;">FileAccessAgent (Host Service)</th>
+      <th style="width: 39%;">UserLoginAgent (Client Drive)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Primary Purpose</strong></td>
+      <td><strong>Folder Provider (Host)</strong><br>Shares physical directories to the cloud network.</td>
+      <td><strong>Folder Consumer (Client)</strong><br>Mounts authorized folders as local virtual drive <code>R:</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Installed Where?</strong></td>
+      <td>Host machine / Office PC storing actual files.</td>
+      <td>Employee / User laptops and PCs.</td>
+    </tr>
+    <tr>
+      <td><strong>Authentication</strong></td>
+      <td>Temporary 6-Digit Pairing PIN + Admin Approval.</td>
+      <td>Username / Email + Password.</td>
+    </tr>
+    <tr>
+      <td><strong>Drive Mount (R:)</strong></td>
+      <td>No virtual drive mounted on host.</td>
+      <td><strong>Yes!</strong> Automatically mounts <code>R:\</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Network Protocol</strong></td>
+      <td>Outbound SignalR WebSocket (WSS).</td>
+      <td>REST API Authentication + Win32 Kernel Mount.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>5. Frequently Asked Questions</h2>
+<div class="alert-box info">
+  <strong>Q1: Does UserLoginAgent require FileAccessAgent to be running?</strong><br>
+  <strong>No!</strong> UserLoginAgent will always mount Drive <code>R:</code> and display folder names even if the host PC is offline. However, browsing live real-time files inside those folders requires the host PC's FileAccessAgent to be online.
+</div>
+
+<div class="alert-box">
+  <strong>Q2: Can both agents run on the same computer?</strong><br>
+  <strong>Yes!</strong> If your computer is both the folder provider and you also want to mount <code>R:</code> drive as a user, both agents run side-by-side without conflict.
+</div>
+
+<div class="footer">
+  <span>PCAccess Enterprise Solutions</span>
+  <span>Document 2: FileAccessAgent & Comparison (English)</span>
+</div>
+
+</body>
+</html>

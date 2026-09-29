@@ -1,0 +1,189 @@
+
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard | Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- favicon -->
+    <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon">
+
+    <!-- Main Css -->
+    <link href="@Url.Content("~/Content/css/style.css")" rel="stylesheet" type="text/css">
+    <link href="@Url.Content("~/Content/loader/Loader.css")" rel="stylesheet" type="text/css">
+    <style>
+        .swal2-confirm {
+            background-color: #1f9251 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border-radius: 6px !important;
+            padding: 8px 20px !important;
+        }
+
+            .swal2-confirm:hover {
+                background-color: #187541 !important;
+            }
+
+        #BtnSubmitLogin:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Override primary color to #1f9251 */
+        .bg-primary { background-color: #1f9251 !important; }
+        .bg-primary:hover { background-color: #187541 !important; }
+        .text-primary { color: #1f9251 !important; }
+        .focus\:border-primary:focus { border-color: #1f9251 !important; }
+    </style>
+</head>
+
+<body>
+    <!-- =========== Main Section Start =========== -->
+    <section class="h-screen w-full">
+        <div class="grid xl:grid-cols-2 grid-cols-1 h-full">
+            <div class="hidden xl:block">
+                <div class="relative w-full h-screen bg-center bg-cover" style="background-image: url('@Url.Content("~/Content/image/loginimageleft.png")');"></div>
+            </div>
+            <div class="max-w-lg mx-auto w-full flex flex-col justify-center md:items-start items-center p-6">
+                <div class="md:text-start text-center mb-7">
+                    <a class='flex items-center gap-2 mb-8' href='#'>
+                        <div class="bg-primary p-1.5 rounded-lg">
+                            <i data-lucide="layout-dashboard" class="h-6 w-6 text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold text-dark tracking-tight">Dashboard</span>
+                    </a>
+
+                    <div class="md:text-start text-center">
+                        <h3 class="text-2xl font-semibold text-dark mb-3">Welcome to PCAccess</h3>
+                        <p class="text-base font-medium text-light">please login to access the dashboard</p>
+                    </div>
+                </div>
+
+                <form class="text-start w-full">
+
+
+                    <div class="mb-4">
+                        <label for="Username" class="block text-base font-semibold text-dark mb-2">Email address</label>
+                        <input id="Username" class="block w-full rounded-md py-2.5 px-4 text-dark text-base font-medium border-gray-300 focus:gray-300 focus:border-primary focus:outline-0 focus:ring-0 placeholder:text-light placeholder:text-base" type="email" placeholder="Enter your email">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="Password" class="block text-base font-semibold text-dark mb-2">Password</label>
+                        <div class="flex">
+                            <input type="password" id="Password" class="form-password text-dark text-base font-medium block w-full rounded-s-md py-2.5 px-4 border border-gray-300 focus:gray-300 focus:border-primary focus:outline-0 focus:ring-0 placeholder:text-light placeholder:text-base" placeholder="Enter your password">
+                            <button type="button" data-hs-toggle-password='{"target": "#Password"}' class="inline-flex items-center justify-center py-2.5 px-4 border rounded-e-md -ms-px border-gray-300">
+                                <i class="hs-password-active:hidden h-5 w-5 text-dark" data-lucide="eye"></i>
+                                <i data-lucide="eye-off" class="hidden hs-password-active:block h-5 w-5 text-dark"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center flex-wrap gap-x-1 gap-y-2 mb-6 mt-3">
+                        <div class="inline-flex items-center">
+                            <input type="checkbox" id="rememberMe"
+                                   class="h-4 w-4 text-base rounded border-gray-300 text-dark focus:ring focus:ring-default-950/30 focus:ring-offset-0">
+                            <label for="rememberMe" class="text-base ms-2 text-light font-medium align-middle select-none" for="checkbox-signin">Remember me</label>
+                        </div>
+                        <a class='text-base text-dark' href='#l'><small>Forgot your password?</small></a>
+                    </div>
+
+                    <div class="text-center mb-7">
+                        <button type="button" id="BtnSubmitLogin"
+                                class="w-full inline-flex items-center justify-center px-6 py-2.5 bg-primary font-bold text-base text-white rounded-md transition-all duration-500">
+                            Log In
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ================= Loader ================= -->
+    <div id="loading-div-background">
+        <div id="loading-div">
+            <div class="process-loader"></div>
+            <span class="textspan">Processing... Please wait</span>
+        </div>
+    </div>
+    <!-- =========== Main Section Start =========== -->
+    <script src="@Url.Content("~/Scripts/jquery-3.7.0.min.js")"></script>
+    <script src="@Url.Content("~/Content/js/sweetalert.js")"></script>
+    <!-- Preline Js -->
+    <script src="@Url.Content("~/Content/libs/preline/preline.js")"></script>
+
+    <!-- Lucide Js -->
+    <script src="@Url.Content("~/Content/libs/lucide/umd/lucide.min.js")"></script>
+
+    <!-- Main App Js -->
+    <script src="@Url.Content("~/Content/js/app.js")"></script>
+    <script>
+        $(document).ready(function () {
+            function validateLogin() {
+                var email = $("#Username").val().trim();
+                var password = $("#Password").val().trim();
+                $("#BtnSubmitLogin").prop("disabled", !(email && password));
+            }
+            $("#Username, #Password").on("keyup change", function () {
+                validateLogin();
+            });
+            $(document).on("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    $("#BtnSubmitLogin").click();
+                }
+            });
+            $("#BtnSubmitLogin").on("click", function (e) {
+                e.preventDefault();
+                var Username = $("#Username").val().trim();
+                var Password = $("#Password").val().trim();
+                var rememberMe = $("#rememberMe").is(":checked");
+                if (Username === "") {
+                    Swal.fire({
+                        icon: "warning",title: "Oops!",text: "Please enter your Username!",
+                        confirmButtonColor: "#d4a33b",
+                    }).then(() => { $("#Username").focus(); });
+                    return;
+                }
+
+                if (Password === "") {
+                    Swal.fire({
+                        icon: "warning",title: "Oops!",text: "Please enter your Password!",
+                        confirmButtonColor: "#d4a33b",
+                    }).then(() => { $("#Password").focus(); });
+                    return;
+                }
+                $.ajax({
+                    url: '/AccountAPI/Login',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify({UserName: Username,PassWord: Password,RememberMe: rememberMe
+                    }),
+                    beforeSend: function () {
+                        $("#loading-div-background").css("display", "flex");
+                    },
+                    success: function (data) {
+                        $("#loading-div-background").hide();
+                        if (data.status === "success") {
+                            window.open(data.url, "_self");
+                        } else {
+                            Swal.fire({
+                                icon: "error",title: "Info",text: data.message,confirmButtonColor: "#4556b7"
+                            });
+                        }
+                    },
+                    error: function () {
+                        $("#loading-div-background").hide();
+                        Swal.fire("Error", "Something went wrong", "error");
+                    }
+                });
+            });
+        });
+
+    </script>
+</body>
+
+</html>

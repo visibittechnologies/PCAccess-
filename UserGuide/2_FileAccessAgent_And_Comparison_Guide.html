@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PCAccess - FileAccessAgent & Agent Comparison Guide</title>
+<style>
+  @page {
+    size: A4;
+    margin: 16mm 14mm 16mm 14mm;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 13.5px;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  .header-card {
+    background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    color: #fff;
+    padding: 24px 28px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(6,95,70,0.15);
+  }
+  .header-card h1 {
+    margin: 0 0 6px 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .header-card .subtitle {
+    font-size: 14px;
+    color: #a7f3d0;
+    margin-bottom: 12px;
+  }
+  .badge-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  h2 {
+    font-size: 18px;
+    color: #065f46;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 15px;
+    color: #047857;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  p { margin: 0 0 10px 0; }
+  .alert-box {
+    background: #ecfdf5;
+    border-left: 4px solid #059669;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .alert-box.info {
+    background: #eff6ff;
+    border-left-color: #2563eb;
+  }
+  .alert-box.warning {
+    background: #fffbeb;
+    border-left-color: #d97706;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px 0;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+  }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  .key-badge {
+    display: inline-block;
+    background: #0f172a;
+    color: #fff;
+    font-family: Consolas, monospace;
+    font-weight: bold;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .code-block {
+    background: #0f172a;
+    color: #6ee7b7;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    line-height: 1.45;
+    margin: 10px 0;
+  }
+  .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: #059669;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+  .page-break { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+  .footer {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <h1>PCAccess — FileAccessAgent & Comparison Guide</h1>
+  <div class="subtitle">Host Workstation Sharing Agent & Dual-Agent Architectural Blueprint</div>
+  <div class="badge-row">
+    <span class="badge">Host Workstation</span>
+    <span class="badge">SignalR WebSocket</span>
+    <span class="badge">Windows Service</span>
+    <span class="badge">Comparative Analysis</span>
+  </div>
+</div>
+
+<h2>1. Introduction: FileAccessAgent Kya Hai?</h2>
+<p>
+  <strong>FileAccessAgent</strong> ek secure background agent hai jo us <strong>Host Computer / Server</strong> par install hota hai jahan ke physical folders (e.g. <code>D:\CompanyFiles</code>) ko doosre users ke sath share karna hota hai.
+</p>
+<div class="alert-box">
+  <strong>Key Architecture:</strong> Yeh agent TeamViewer / AnyDesk ki tarah outbound WebSocket (SignalR) connection banata hai. Iske liye router me <strong>koi port forwarding ya public IP kholne ki zaroorat nahi hoti</strong>.
+</div>
+
+<h2>2. FileAccessAgent Pairing & Setup Workflow</h2>
+<div class="avoid-break">
+  <p><span class="step-num">1</span> <strong>Run Host Agent:</strong> <code>FileAccessAgent\run.bat</code> chalayein ya Windows Service install karein.</p>
+  <p><span class="step-num">2</span> <strong>Generate 6-Digit Pairing Code:</strong> Agent launch hone par screen par ek temporary 6-digit code (e.g. <code>482-910</code>) generate hoga jo 15 minute ke liye valid rehta hai.</p>
+  <p><span class="step-num">3</span> <strong>Pair via Web Portal:</strong> Admin web portal me jakar <em>Connected Devices &gt; Pair Device</em> me ye 6-digit code enter karega.</p>
+  <p><span class="step-num">4</span> <strong>Device Becomes ONLINE:</strong> Device verify hote hi server par permanent token save ho jata hai aur device ka status live <strong>ONLINE</strong> badge dikhane lagta hai.</p>
+  <p><span class="step-num">5</span> <strong>Assign Folders:</strong> Admin ab is machine ke kisi bhi local folder ko select karke specific users (ya sabhi) ko share kar sakta hai.</p>
+</div>
+
+<h2>3. Windows Service Controls (Host PC par)</h2>
+<p>Host machine par 24x7 background me chalane ke liye pre-configured batch scripts maujood hain:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Batch Script</th>
+      <th>Equivalent Command</th>
+      <th>Action Performed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong><code>install-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --install</code></td>
+      <td>Agent ko official Windows Service ke roop me register karta hai (Auto-starts on PC boot).</td>
+    </tr>
+    <tr>
+      <td><strong><code>start-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --start</code></td>
+      <td>Installed Windows service ko start karta hai.</td>
+    </tr>
+    <tr>
+      <td><strong><code>stop-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --stop</code></td>
+      <td>Running service ko safely halt karta hai.</td>
+    </tr>
+    <tr>
+      <td><strong><code>check-status.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --status</code></td>
+      <td>Service status (Running/Stopped) aur recent activity logs display karta hai.</td>
+    </tr>
+    <tr>
+      <td><strong><code>uninstall-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --uninstall</code></td>
+      <td>Windows Service registration ko system se cleanly remove karta hai.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>4. Deep Comparison: UserLoginAgent vs FileAccessAgent</h2>
+<p>Dono agents ka PCAccess ecosystem me alag-alag aur complementary role hai. Niche di gayi table dono ka complete difference aur relation explain karti hai:</p>
+
+<table class="avoid-break">
+  <thead>
+    <tr>
+      <th style="width: 22%;">Feature</th>
+      <th style="width: 39%;">FileAccessAgent (Host Agent)</th>
+      <th style="width: 39%;">UserLoginAgent (Client Agent)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Primary Role</strong></td>
+      <td><strong>Folder Provider / Host</strong><br>Apne PC ke physical folders ko network me share karta hai.</td>
+      <td><strong>Folder Consumer / Client</strong><br>Shared folders ko apne PC par Virtual Drive R: bana kar access karta hai.</td>
+    </tr>
+    <tr>
+      <td><strong>Kahan Install Hota Hai?</strong></td>
+      <td>Us machine par jahan actual files/folders physically store hain (Office Server, Admin PC).</td>
+      <td>User / Employee ke personal laptop ya desktop par.</td>
+    </tr>
+    <tr>
+      <td><strong>Authentication Method</strong></td>
+      <td>Temporary 6-Digit Pairing Code (Web Admin approval ke sath).</td>
+      <td>Username / Email + Password login.</td>
+    </tr>
+    <tr>
+      <td><strong>Windows Mount (R:)</strong></td>
+      <td>Nahi karta (Sirf service / daemon ki tarah chalta hai).</td>
+      <td><strong>Haan!</strong> Login hote hi virtual <code>R:</code> ("Remote Drive") mount karta hai.</td>
+    </tr>
+    <tr>
+      <td><strong>Connection Technology</strong></td>
+      <td>SignalR Hub WebSocket (Live bi-directional file streaming).</td>
+      <td>REST API Authentication + Win32 Virtual Drive Staging.</td>
+    </tr>
+    <tr>
+      <td><strong>Mode of Operation</strong></td>
+      <td>Background Windows Service (24x7 unattended).</td>
+      <td>Interactive Desktop Console Application.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>5. Common Questions & Interoperability (Dono Milkar Kaise Kaam Karte Hain?)</h2>
+
+<div class="alert-box info">
+  <strong>Q1: Kya UserLoginAgent ko chalane ke liye FileAccessAgent ka live hona zaruri hai?</strong><br>
+  <strong>Nahi!</strong> UserLoginAgent bina FileAccessAgent ke bhi login karega aur user ke PC me <code>R:</code> Remote Drive create ho jayegi. Permitted folders ke naam aur structure user ko dikhenge.
+</div>
+
+<div class="alert-box warning">
+  <strong>Q2: Phir FileAccessAgent kab zaruri hai?</strong><br>
+  Jab user ko kisi remote PC ke folder ke andar ki actual real-time files browse karni ho ya download/upload karni ho, tab us specific host PC ka <code>FileAccessAgent</code> live/online hona zaruri hai.
+</div>
+
+<div class="alert-box">
+  <strong>Q3: Kya dono agent ek hi PC par chal sakte hain?</strong><br>
+  <strong>Haan!</strong> Agar aapka PC hi Host PC hai aur aap khud apne user account se <code>R:</code> drive mount karna chahte hain, to dono agents same PC par bina kisi conflict ke chal sakte hain.
+</div>
+
+<div class="footer">
+  <span>PCAccess Enterprise Solutions</span>
+  <span>Document 2 of 3: FileAccessAgent & Comparison</span>
+</div>
+
+</body>
+</html>

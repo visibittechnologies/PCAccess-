@@ -1,0 +1,56 @@
+<aside id="sidebar" class="w-64 shrink-0 flex flex-col border-r border-slate-200 bg-white fixed inset-y-0 left-0 transform-gpu -translate-x-full transition-all duration-300 ease-in-out z-30">
+    <div class="flex h-16 items-center justify-start px-6 border-b border-slate-200 bg-white sticky top-0 z-20">
+        <a class='flex items-center gap-3' href='/Admin/DashboardOverview'>
+            <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-2xl">folder_shared</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-base font-bold text-slate-900 leading-tight">PCAccess</span>
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">File System</span>
+            </div>
+        </a>
+    </div>
+    <nav id="sidebarScroll" class="flex-1 px-4 py-5 space-y-6 overflow-y-auto no-scrollbar">
+        <div data-category="FILE ACCESS SYSTEM">
+            <h3 class="text-xs font-semibold text-slate-400 mb-2 tracking-wider uppercase px-2">FILE ACCESS SYSTEM</h3>
+            <div class="space-y-1">
+                <a href="/Admin/DashboardOverview" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold text-sm cursor-pointer transition-all">
+                    <span class="material-symbols-outlined text-lg">dashboard</span>
+                    Dashboard
+                </a>
+                <a href="#connected-devices-section" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer transition-all">
+                    <span class="material-symbols-outlined text-lg">devices</span>
+                    Connected Devices
+                </a>
+                <a href="/Admin/DeviceFolders" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer transition-all">
+                    <span class="material-symbols-outlined text-lg">folder_open</span>
+                    Shared Folders
+                </a>
+                <a href="#recent-activity-section" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer transition-all">
+                    <span class="material-symbols-outlined text-lg">history</span>
+                    Recent Activity
+                </a>
+            </div>
+        </div>
+
+        <div data-category="ACCOUNT & SECURITY">
+            <h3 class="text-xs font-semibold text-slate-400 mb-2 tracking-wider uppercase px-2">ACCOUNT & SECURITY</h3>
+            <div class="space-y-1">
+                <a href="/Admin/Profile" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer transition-all">
+                    <span class="material-symbols-outlined text-lg">account_circle</span>
+                    Admin Profile
+                </a>
+                <a href="javascript:void(0)" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer transition-all">
+                    <span class="material-symbols-outlined text-lg">shield</span>
+                    Security & Keys
+                </a>
+            </div>
+        </div>
+    </nav>
+    <div class="p-4 border-t border-slate-200 sticky bottom-0 bg-white z-20">
+        <div class="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-100">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs text-slate-600 font-medium">Gateway Service Online</span>
+        </div>
+    </div>
+</aside>

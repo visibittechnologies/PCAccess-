@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>PCAccess - FileAccessAgent एवं तुलना मार्गदर्शिका (हिंदी)</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Nirmala UI', 'Mangal', sans-serif;
+    color: #1e293b;
+    line-height: 1.6;
+    font-size: 13.5px;
+    background: #fff;
+    margin: 0; padding: 0;
+  }
+  .header-card {
+    background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    color: #fff;
+    padding: 24px 28px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(6,95,70,0.15);
+  }
+  .header-card h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 700; }
+  .header-card .subtitle { font-size: 14px; color: #a7f3d0; margin-bottom: 12px; }
+  .badge-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 18px;
+    color: #065f46;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+  .alert-box {
+    background: #ecfdf5;
+    border-left: 4px solid #059669;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .alert-box.info { background: #eff6ff; border-left-color: #2563eb; }
+  .alert-box.warning { background: #fffbeb; border-left-color: #d97706; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px 0;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background-color: #f1f5f9; color: #0f172a; font-weight: 700; }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: #059669;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+  .page-break { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+  .footer {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <h1>PCAccess — FileAccessAgent एवं तुलना मार्गदर्शिका</h1>
+  <div class="subtitle">होस्ट वर्कस्टेशन शेयरिंग सेवा एवं दोनों एजेंटों का संपूर्ण विश्लेषण</div>
+  <div class="badge-row">
+    <span class="badge">हिंदी संस्करण (Hindi Edition)</span>
+    <span class="badge">होस्ट कंप्यूटर</span>
+    <span class="badge">विंडोज़ सर्विस</span>
+  </div>
+</div>
+
+<h2>1. परिचय: FileAccessAgent क्या है?</h2>
+<p>
+  <strong>FileAccessAgent</strong> एक सुरक्षित बैकग्राउंड सॉफ्टवेयर है जो उस <strong>मुख्य कंप्यूटर या ऑफिस सर्वर</strong> पर चलाया जाता है जहां की फाइलें और फ़ोल्डर्स दूसरों के साथ शेयर करने होते हैं।
+</p>
+<div class="alert-box">
+  <strong>मुख्य तकनीक:</strong> TeamViewer या AnyDesk की तरह यह सिर्फ आउटबाउंड सिग्नलआर (SignalR) कनेक्शन बनाता है। इसके लिए <strong>राउटर में कोई पोर्ट खोलने या पब्लिक आईपी की आवश्यकता नहीं होती</strong>।
+</div>
+
+<h2>2. कंप्यूटर को कैसे पेयर (जोड़ें) करें?</h2>
+<div class="avoid-break">
+  <p><span class="step-num">1</span> <strong>सॉफ्टवेयर चलाएं:</strong> होस्ट कंप्यूटर पर <code>run.bat</code> चालू करें।</p>
+  <p><span class="step-num">2</span> <strong>6-अंकों का पिन देखें:</strong> स्क्रीन पर 15 मिनट के लिए मान्य 6-अंकों का कोड (जैसे <code>582-194</code>) दिखाई देगा।</p>
+  <p><span class="step-num">3</span> <strong>वेब पोर्टल पर जाएं:</strong> एडमिन पोर्टल (<code>https://pcaccess.ourdemos.com/Admin/DeviceFolders</code>) में <em>Pair Device</em> पर क्लिक करके यह कोड दर्ज करें।</p>
+  <p><span class="step-num">4</span> <strong>कंप्यूटर ऑनलाइन होगा:</strong> कंप्यूटर हमेशा के लिए जुड़ जाएगा और पोर्टल पर <strong>ONLINE</strong> स्टेटस दिखेगा।</p>
+  <p><span class="step-num">5</span> <strong>फ़ोल्डर असाइन करें:</strong> कंप्यूटर का कोई भी फ़ोल्डर (जैसे <code>D:\CompanyFiles</code>) चुनकर कर्मचारियों को एक्सेस दें।</p>
+</div>
+
+<h2>3. 24 घंटे बैकग्राउंड सर्विस चलाना (Windows Service)</h2>
+<table>
+  <thead>
+    <tr>
+      <th>बैच फ़ाइल</th>
+      <th>कमांड</th>
+      <th>उपयोग एवं कार्य</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong><code>install-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --install</code></td>
+      <td>एजेंट को विंडोज़ सर्विस बना देता है (कंप्यूटर चालू होते ही अपने आप शुरू होगा)।</td>
+    </tr>
+    <tr>
+      <td><strong><code>start-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --start</code></td>
+      <td>सर्विस को शुरू करता है।</td>
+    </tr>
+    <tr>
+      <td><strong><code>stop-service.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --stop</code></td>
+      <td>चल रही सर्विस को सुरक्षित रोकता है।</td>
+    </tr>
+    <tr>
+      <td><strong><code>check-status.bat</code></strong></td>
+      <td><code>FileAccessAgent.exe --status</code></td>
+      <td>सर्विस की स्थिति (Running/Stopped) जांचता है।</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>4. दोनों एजेंटों में अंतर (Deep Comparison)</h2>
+<table class="avoid-break">
+  <thead>
+    <tr>
+      <th style="width: 22%;">विशेषता (Feature)</th>
+      <th style="width: 39%;">FileAccessAgent (होस्ट कंप्यूटर)</th>
+      <th style="width: 39%;">UserLoginAgent (यूज़र लैपटॉप)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>मुख्य कार्य</strong></td>
+      <td><strong>फ़ोल्डर प्रदाता (Host)</strong><br>कंप्यूटर के असली फ़ोल्डर्स को नेटवर्क में शेयर करता है।</td>
+      <td><strong>फ़ोल्डर उपभोक्ता (Client)</strong><br>शेयर्ड फ़ोल्डर्स को अपनी ड्राइव <code>R:</code> बनाकर एक्सेस करता है।</td>
+    </tr>
+    <tr>
+      <td><strong>कहाँ चलाया जाता है?</strong></td>
+      <td>ऑफिस के मुख्य कंप्यूटर या सर्वर पर जहाँ फाइलें रखी हैं।</td>
+      <td>कर्मचारियों या यूज़र्स के अपने पर्सनल लैपटॉप/पीसी पर।</td>
+    </tr>
+    <tr>
+      <td><strong>लॉगिन का तरीका</strong></td>
+      <td>6-अंकों का अस्थायी पेयरिंग पिन (एडमिन अप्रूवल)।</td>
+      <td>यूज़रनेम/ईमेल और पासवर्ड।</td>
+    </tr>
+    <tr>
+      <td><strong>वर्चुअल ड्राइव R:</strong></td>
+      <td>होस्ट पर कोई R: ड्राइव नहीं बनती।</td>
+      <td><strong>हाँ!</strong> लॉगिन होते ही <code>R:\</code> ड्राइव बन जाती है।</td>
+    </tr>
+    <tr>
+      <td><strong>कार्य प्रणाली</strong></td>
+      <td>24x7 बैकग्राउंड विंडोज़ सर्विस।</td>
+      <td>डेस्कटॉप ऐप (काम खत्म होने पर बंद कर सकते हैं)।</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>5. सामान्य प्रश्न (FAQ)</h2>
+<div class="alert-box info">
+  <strong>प्रश्न 1: क्या UserLoginAgent चलाने के लिए FileAccessAgent का चालू रहना जरूरी है?</strong><br>
+  <strong>उत्तर: नहीं!</strong> UserLoginAgent बिना FileAccessAgent के भी लॉगिन होगा और <code>R:</code> ड्राइव बन जाएगी। फ़ोल्डर्स के नाम दिखेंगे। लेकिन फ़ोल्डर के अंदर की लाइव फाइलों को खोलने या डाउनलोड करने के लिए होस्ट का FileAccessAgent ऑनलाइन होना चाहिए।
+</div>
+
+<div class="alert-box">
+  <strong>प्रश्न 2: क्या दोनों एजेंट एक ही कंप्यूटर पर चल सकते हैं?</strong><br>
+  <strong>उत्तर: बिल्कुल हाँ!</strong> यदि आपका कंप्यूटर ही होस्ट है और आप खुद भी R: ड्राइव से फाइलें देखना चाहते हैं, तो दोनों एजेंट एक साथ चल सकते हैं।
+</div>
+
+<div class="footer">
+  <span>PCAccess Enterprise Solutions</span>
+  <span>दस्तावेज़ 2: FileAccessAgent एवं तुलना (हिंदी संस्करण)</span>
+</div>
+
+</body>
+</html>

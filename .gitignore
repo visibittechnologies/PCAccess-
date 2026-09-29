@@ -1,0 +1,35 @@
+## Visual Studio & .NET Build Output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.bak
+
+## Visual Studio Cache & Temporary Files
+.vs/
+_ReSharper*/
+*.VC.db
+*.VC.opendb
+
+## NuGet Packages Directory
+packages/
+*.nuget.props
+*.nuget.targets
+
+## Published Outputs (except Releases_Backup)
+PublishOutput/
+*.Publish.xml
+
+## OS Generated Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp

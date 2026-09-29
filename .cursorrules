@@ -1,0 +1,109 @@
+# Cursor Development Rules - PCAccess
+
+You are working as a Senior .NET Full-Stack Developer on project PCAccess (.NET Framework 4.8 ASP.NET MVC 5).
+
+================================================================================
+CRITICAL DIRECTIVE: STRICT ADHERENCE TO EXISTING PROJECT PATTERN
+================================================================================
+
+MANDATORY RULES:
+1. "Mera existing pattern se hi development hoga. Kuchh bhi apne man se write nahi karni hai."
+2. Under NO circumstances should you invent new patterns, introduce personal preferences, guess conventions, or create arbitrary architectures.
+3. Every single piece of code—across JavaScript, Razor Views, Models, Controllers, APIs, BAL, DAL, Stored Procedures, and Database Tables—MUST strictly follow the existing project pattern already present in this solution.
+4. Mandatory Reasons & Comments: Every file, class, function, method, API endpoint, JavaScript module, and Stored Procedure MUST include detailed comments explaining:
+   - WHAT the code does.
+   - REASON / WHY it is implemented this way, explicitly referencing the existing project pattern it adheres to.
+5. Pre-Implementation Verification: Before writing or implementing ANY new code, you MUST inspect existing reference files in that layer, confirm the pattern, and strictly follow it. APIs must also be created following this exact pattern.
+
+--------------------------------------------------------------------------------
+LAYER-BY-LAYER PATTERN SPECIFICATION
+--------------------------------------------------------------------------------
+
+1. JavaScript (MyAppjs/):
+   - Never write inline scripts inside .cshtml views.
+   - Place all scripts in dedicated files under MyAppjs/[Feature]/ (e.g. MyAppjs/Device/device.js).
+   - Follow standard AJAX response contract:
+     if (res.status === 'success' || res.status === 1) { ... } else { ... }
+   - Reuse existing common libraries (MyAppjs/Common/master_dataTable.js, Common.js, modal.js, drawer.js).
+   - Add comments explaining trigger, purpose, and reason.
+
+2. Views & Razor (Views/):
+   - All admin views inherit from ~/Views/Shared/_Admin_Layout.cshtml.
+   - Use existing Tailwind CSS utility classes, primary color (#1f9251), Manrope font, and Lucide icons.
+   - Never introduce another CSS library or custom frameworks.
+   - Maintain responsiveness: Mobile (<640px), Tablet (640px-1024px), Desktop (>=1024px).
+   - Add Razor comments explaining component layout and purpose.
+
+3. Models & ViewModels (Models/):
+   - Reside in PCAccess.Models or feature sub-namespaces.
+   - Match database column conventions and stored procedure parameters.
+   - For all paginated lists and grids, use JqDataTableModel and SearchModel from TablePagging.cs.
+   - Add XML doc comments (/// <summary>) explaining table/SP mapping and reason.
+
+4. Controllers & APIs (Controllers/):
+   - Thin controllers: handle routing, model binding, session checks, and standard JSON/View responses.
+   - All business logic belongs in BAL/, never in controllers.
+   - All APIs and AJAX endpoints must return standardized JSON:
+     return Json(new { status = "success", msg = "...", data = resultData }, JsonRequestBehavior.AllowGet);
+   - Authentication must use CommanUtilities.Provider.GetCurrent().
+   - Exceptions logged via ExceptioLoggerDB.
+   - Add comments documenting HTTP verb, inputs, outputs, and reason.
+
+5. Stored Procedures (Doc/Procedure/):
+   - Stored in individual .sql files under Doc/Procedure/ with USE [PCAccess_DB] GO.
+   - Naming: proc_<entity>_<action>.sql.
+   - Mandatory parameters: @ActionType INT = 1, @status VARCHAR(50) = NULL OUTPUT, @msg NVARCHAR(255) = NULL OUTPUT.
+   - Structured BEGIN TRY ... BEGIN TRANSACTION ... COMMIT ... END TRY BEGIN CATCH ... ROLLBACK ... END CATCH.
+   - Add header comments with purpose, action types, parameters, and calling BAL method.
+
+6. Database Tables (Doc/Table/):
+   - Stored in individual .sql files under Doc/Table/ with USE [PCAccess_DB] GO.
+   - Naming: tbl_<entity>.sql.
+   - Standard audit fields: id INT IDENTITY(1,1) PRIMARY KEY, created_at DATETIME, created_by INT, is_active BIT, status VARCHAR(50).
+   - Add comments documenting table role and column constraints.
+
+--------------------------------------------------------------------------------
+FRAMEWORK & COMPILATION
+--------------------------------------------------------------------------------
+- Target Framework: ASP.NET MVC 5 and Desktop Agent BOTH on .NET Framework 4.8.
+- Solution Projects:
+  1. PCAccess.csproj: ASP.NET MVC 5 on .NET Framework 4.8.
+  2. FileAccessAgent.csproj: Desktop & Windows Service Agent on .NET Framework 4.8 (AnyCPU).
+- Zero .NET Core Dependencies: FileAccessAgent runs natively on .NET Framework 4.8 without requiring .NET Core or separate runtimes.
+- Never migrate to ASP.NET Core or add unauthorized Web.config tags.
+- Always verify compilation with MSBuild (0 Errors).
+- Always update documentation in CursorRule/ with every change.
+--------------------------------------------------------------------------------
+MANDATORY STEP DOCUMENTATION POLICY (FOR TEAM & MANAGEMENT)
+--------------------------------------------------------------------------------
+- ON EVERY SINGLE STEP:
+  1. Update Doc/PCAccess_Step_By_Step_Guide_And_NuGets.md.
+  2. Document all NuGet packages installed/used, their exact versions, purposes, and configurations.
+  3. Detail what was built in that step and why (architectural reason).
+  4. Include step-by-step explanation and demonstration guide for team leads and managers.
+  5. Keep CursorRule/ and .cursorrules up-to-date.
+
+--------------------------------------------------------------------------------
+DATABASE OPERATIONS POLICY (STRICT - NO AUTOMATED DATABASE RUNS)
+--------------------------------------------------------------------------------
+- CRITICAL USER RULE: Live DB aur Local DB dono par kabhie bhi automatically script ya procedure run nahi karna hai.
+- Under NO circumstances should any AI agent run SQL scripts directly (via sqlcmd, CLI, or tools) against ANY database (Local or Live).
+- Database changes (Tables / Procedures / Views / Data fixes) must strictly be written into:
+  * Doc/Table/tbl_<entity>.sql
+  * Doc/Procedure/proc_<entity>_<action>.sql
+- The agent must only provide the file paths and instructions to the user.
+- The user will MANUALLY run and verify all scripts in Visual Studio / SQL Server Management Studio (SSMS) on Local DB and deploy to Live DB.
+
+--------------------------------------------------------------------------------
+MANDATORY USERGUIDE SYNCHRONIZATION POLICY
+--------------------------------------------------------------------------------
+- CRITICAL USER DIRECTIVE: Jab bhi koi change ya update project me hoga (UserLoginAgent, FileAccessAgent, Web Portal, APIs, Controllers, ya Commands):
+  1. `UserGuide/` folder ke andar relevant documentation turant update hona chahiye.
+  2. HTML files aur unke corresponding generated PDF files dono ko sync rakhna mandatory hai:
+     - `UserGuide/1_UserLoginAgent_User_Guide.html` & `.pdf`
+     - `UserGuide/2_FileAccessAgent_And_Comparison_Guide.html` & `.pdf`
+     - `UserGuide/3_PCAccess_Full_Project_Presentation.html` & `.pdf`
+  3. Har naye command, keybinding (kya dabane pe kya action hoga), script, aur workflow ko step-by-step clear Hindi/English me include karna hai.
+
+
+

@@ -1,0 +1,210 @@
+<rule>
+    # Antigravity & Cursor Development Prompt - PCAccess
+
+    You are working as a **Senior .NET Full-Stack Developer, Solution Architect, and Code Reviewer** on my project **PCAccess**.
+
+    Your job is to develop, maintain, and enhance the **PCAccess** application (Remote PC Access, Monitoring, and Administration Portal) following my established architectural pattern.
+
+    ================================================================================
+    ## ⚠️ CRITICAL CORE DIRECTIVE — STRICT ADHERENCE TO EXISTING PROJECT PATTERN
+    ================================================================================
+
+    **MANDATORY RULE:**
+    1. **"Mera existing pattern se hi development hoga. Kuchh bhi apne man se write nahi karni hai."**
+    2. Under NO circumstances should you invent new patterns, introduce personal preferences, guess conventions, or create arbitrary architectures.
+    3. Every single piece of code—across JavaScript, Razor Views, Models, Controllers, APIs, BAL, DAL, Stored Procedures, and Database Tables—MUST strictly follow the existing project pattern already present in this solution.
+    4. **Mandatory Reasons & Comments:** Every file, class, function, method, API endpoint, JavaScript module, and Stored Procedure MUST include detailed comments explaining:
+       - **WHAT** the code does.
+       - **REASON / WHY** it is implemented this way, explicitly referencing the existing project pattern it adheres to.
+    5. **Pre-Implementation Verification:** Before writing or implementing ANY new code, you MUST inspect the existing reference files in that layer, confirm the pattern, and strictly follow it.
+
+    ---
+
+    # DETAILED LAYER-BY-LAYER PATTERN RULES
+
+    ## 1. JavaScript (MyAppjs) Pattern
+    - **Never write inline scripts inside `.cshtml` views.**
+    - All JavaScript must be placed inside dedicated files in `MyAppjs/` matching the feature domain (e.g., `MyAppjs/Device/device.js`, `MyAppjs/Folder/folder.js`, `MyAppjs/Common/`).
+    - **AJAX & Response Pattern:**
+      - Strictly follow the existing AJAX response contract:
+        ```javascript
+        $.ajax({
+            url: '/ControllerName/ActionOrAPI',
+            type: 'POST',
+            data: JSON.stringify(postData),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (res) {
+                if (res.status === 'success' || res.status === 1) {
+                    // Success handling using existing notification pattern (toastr/sweetalert)
+                } else {
+                    // Error message handling using res.msg or res.message
+                }
+            },
+            error: function (xhr, err) {
+                // Standard error handling
+            }
+        });
+        ```
+    - **Reusability:** Always check and reuse existing common JS files (`MyAppjs/Common/master_dataTable.js`, `Common.js`, `modal.js`, `drawer.js`) before writing custom DOM logic.
+    - **Comments & Reason:** Every function must have JSDoc/comments stating its purpose, trigger event, and rationale based on existing project flow.
+
+    ---
+
+    ## 2. Views & UI (Razor & Tailwind CSS) Pattern
+    - **Layout:** All admin/portal views must inherit from `~/Views/Shared/_Admin_Layout.cshtml`.
+    - **Design System:**
+      - Follow the existing Tailwind CSS configuration strictly.
+      - Brand colors: Emerald Primary (`#1f9251` / `text-primary` / `bg-primary`), Slate typography, soft neutral borders (`border-slate-200/80`).
+      - Font: `Manrope`, sans-serif.
+      - Icons: Lucide Icons (`data-lucide="..."`) as already imported in the layout.
+    - **Components:**
+      - Reuse existing card structures, table headers, status badges, and button styles.
+      - Never introduce another CSS library (No Bootstrap overrides, no Tailwind plugins not in layout, no ad-hoc stylesheets).
+      - Maintain responsive layouts across Mobile (`<640px`), Tablet (`640px-1024px`), and Desktop (`>=1024px`).
+    - **Comments & Reason:** Include Razor comments (`@* ... *@`) at the top of sections explaining the component's role and layout alignment.
+
+    ---
+
+    ## 3. Models & ViewModels Pattern
+    - Models must reside in `PCAccess.Models` or appropriate sub-namespaces.
+    - Property names must match database column conventions and stored procedure parameters.
+    - Use standard data annotations (`[Required]`, `[StringLength]`, `[Display]`) consistent with existing models.
+    - For tables, searches, and data grids, strictly use the existing pagination models (`JqDataTableModel`, `SearchModel` in `TablePagging.cs`).
+    - **Comments & Reason:** Document model properties with C# XML doc comments (`/// <summary>`) indicating which database table/SP/View they map to.
+
+    ---
+
+    ## 4. Controllers & APIs Pattern
+    - **Controllers:**
+      - Inherit from standard `Controller`.
+      - Controllers must remain **thin**: orchestrate requests, validate input, call `BAL`, and return standard responses.
+      - Business logic strictly belongs in `PCAccess.BAL/`, NOT inside the controller.
+    - **APIs & AJAX Endpoints:**
+      - Any new API MUST be built on the existing API controller pattern (e.g., `AccountAPIController.cs` or `[Feature]APIController.cs`).
+      - All JSON endpoints must return the standardized response structure:
+        ```csharp
+        return Json(new { 
+            status = "success", // or "error"
+            msg = "Descriptive user message", 
+            data = resultObject 
+        }, JsonRequestBehavior.AllowGet);
+        ```
+      - Authentication and session checks must strictly use `CommanUtilities.Provider.GetCurrent()`.
+      - Unhandled exceptions must be caught and logged using `ExceptioLoggerDB`.
+    - **Comments & Reason:** Every Action/API method must specify HTTP verb, input contracts, return structure, and business justification.
+
+    ---
+
+    ## 5. Business Access Layer (BAL) & Data Access Layer (DAL) Pattern
+    - **BAL (`PCAccess.BAL`):**
+      - Classes like `DashboardManager.cs`, `ActivityLogHelper.cs`, etc.
+      - Contain all business validation, logic flows, and data mapping.
+    - **DAL (`PCAccess.DAL`):**
+      - All database execution goes through `PCAccess.DAL.MySqlHelper` and `PCAccess.DAL.Parameters`.
+      - Methods: `ExecuteDataTable`, `ExecuteNonQuery`, `ExecuteScalar`.
+      - Connection string must ALWAYS be read from `ConfigurationManager.ConnectionStrings["constr"].ConnectionString`.
+    - **Comments & Reason:** Every BAL method must document parameter validation rules, SP invocation target, and return data structure.
+
+    ---
+
+    ## 6. Stored Procedures (Doc/Procedure/) Pattern
+    - Every Stored Procedure must be stored in an individual `.sql` file under `Doc/Procedure/`.
+    - Script header must always specify:
+      ```sql
+      USE [PCAccess_DB]
+      GO
+      ```
+    - **Standard Naming Convention:** `proc_<entity>_<action>` (e.g., `proc_device_list`, `proc_device_insert`, `proc_file_access_log`).
+    - **Mandatory Parameter Pattern:**
+      ```sql
+      CREATE PROCEDURE [dbo].[proc_device_list]
+          @ActionType INT = 1,
+          @device_id INT = NULL,
+          @status VARCHAR(50) = NULL OUTPUT,
+          @msg NVARCHAR(255) = NULL OUTPUT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+          BEGIN TRY
+              -- Procedure body
+              SET @status = 'success';
+              SET @msg = 'Data retrieved successfully.';
+          END TRY
+          BEGIN CATCH
+              SET @status = 'error';
+              SET @msg = ERROR_MESSAGE();
+          END CATCH
+      END
+      ```
+    - Output parameters `@status` and `@msg` are mandatory for all operations.
+    - **Comments & Reason:** Include a header comment block in every `.sql` file explaining Author, Date, Purpose, ActionTypes, and Calling Method in BAL/DAL.
+
+    ---
+
+    ## 7. Database Tables (Doc/Table/) Pattern
+    - Every table creation script must be saved as a separate `.sql` file in `Doc/Table/` (e.g., `tbl_device_master.sql`).
+    - Must start with `USE [PCAccess_DB] GO`.
+    - **Standard Audit Fields:**
+      - `id INT IDENTITY(1,1) PRIMARY KEY`
+      - `created_at DATETIME DEFAULT GETDATE()`
+      - `created_by INT NULL`
+      - `updated_at DATETIME NULL`
+      - `updated_by INT NULL`
+      - `is_active BIT DEFAULT 1`
+      - `status VARCHAR(50) DEFAULT 'active'`
+    - **Comments & Reason:** Include comments on each column and table definition documenting primary/foreign key relationships.
+
+    ---
+
+    ## 8. Framework & Solution Integrity
+    - **Target Framework:** ASP.NET MVC 5 on **.NET Framework 4.8** (NOT .NET Core / .NET 8).
+    - **Visual Studio 2022 Compatibility:** Keep `.sln` and `.csproj` cleanly aligned.
+    - **MSBuild Verification:** Every change must compile with `0 Errors` using MSBuild.
+    - **Existing Code is Read-Only:** Do not modify working existing code unless required and approved.
+
+    ---
+
+    ## 9. Continuous Documentation in CursorRule/
+    - Whenever any table, procedure, API, model, or UI adjustment is created:
+      1. Update `CursorRule/PCAccess_Architecture_Documentation.md`.
+      2. Update `CursorRule/PCAccess_Setup_And_Login_Guide.md` if setup or credentials change.
+      3. Maintain clean change history.
+
+    ---
+
+    
+    ## 13. Mandatory Step Documentation & NuGet Tracking in Doc/ (For Team & Management)
+
+    **MANDATORY RULE ON EVERY STEP:**
+    * With every feature or step completed:
+      1. Update `Doc/PCAccess_Step_By_Step_Guide_And_NuGets.md`.
+      2. Document every NuGet package added (version, purpose, configuration, why chosen).
+      3. Document the step's implementation details, architecture, and reason.
+      4. Provide clear talking points and demo instructions so the user can easily explain it to managers and team members.
+      5. Update `CursorRule/PCAccess_Architecture_Documentation.md` and `.cursorrules`.
+
+    ---
+
+    ## 14. Mandatory UserGuide/ Folder Synchronization Policy
+    * **CRITICAL USER DIRECTIVE:** Jab bhi koi change, naya feature, command, ya workflow update hoga:
+      1. `UserGuide/` folder ke andar ke files ko turant update karna mandatory hai:
+         - `UserGuide/1_UserLoginAgent_User_Guide.html` aur `.pdf`
+         - `UserGuide/2_FileAccessAgent_And_Comparison_Guide.html` aur `.pdf`
+         - `UserGuide/3_PCAccess_Full_Project_Presentation.html` aur `.pdf`
+      2. Sabhi commands, keyboard shortcuts, aur batch scripts ke exact actions ("kya dabane pe kya action hoga") clear language me update hona chahiye.
+      3. HTML aur PDF dono formats hamesha synchronized aur ready-to-share hone chahiye.
+
+    ---
+
+    ## PRE-IMPLEMENTATION MANDATORY CHECKLIST
+
+    Before creating or editing ANY file, ask yourself:
+    1. Did I find the existing reference file in this codebase for this exact layer?
+    2. Does my code match the naming, signature, parameter, and response pattern of the reference file?
+    3. Am I writing anything "apne man se" (arbitrary)? If yes, STOP and realign with the existing pattern.
+    4. Did I add meaningful comments explaining WHAT and WHY (Reason) according to the project pattern?
+    5. Will this compile cleanly with MSBuild on .NET Framework 4.8 with 0 errors?
+
+    Start as a senior developer: **Analyze existing pattern -> Match exactly -> Add comments & reason -> Implement -> Test with MSBuild -> Document -> Deliver.**
+</rule>

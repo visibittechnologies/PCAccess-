@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>PCAccess - UserLoginAgent उपयोगकर्ता मार्गदर्शिका (हिंदी)</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Nirmala UI', 'Mangal', sans-serif;
+    color: #1e293b;
+    line-height: 1.6;
+    font-size: 13.5px;
+    background: #fff;
+    margin: 0; padding: 0;
+  }
+  .header-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    color: #fff;
+    padding: 24px 28px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.15);
+  }
+  .header-card h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 700; }
+  .header-card .subtitle { font-size: 14px; color: #93c5fd; margin-bottom: 12px; }
+  .badge-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 18px;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+  .alert-box {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .alert-box.info { background: #eff6ff; border-left-color: #2563eb; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px 0;
+    font-size: 12.5px;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background-color: #f1f5f9; color: #0f172a; font-weight: 700; }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  .key-badge {
+    display: inline-block;
+    background: #0f172a;
+    color: #fff;
+    font-family: Consolas, monospace;
+    font-weight: bold;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .code-block {
+    background: #0f172a;
+    color: #38bdf8;
+    font-family: Consolas, monospace;
+    font-size: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    line-height: 1.45;
+    margin: 10px 0;
+  }
+  .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+  .page-break { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+  .footer {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <h1>PCAccess — UserLoginAgent उपयोगकर्ता मार्गदर्शिका</h1>
+  <div class="subtitle">कर्मचारियों एवं एडमिन के लिए सीधे डेस्कटॉप पर रिमोट ड्राइव (R:) एक्सेस प्रणाली</div>
+  <div class="badge-row">
+    <span class="badge">हिंदी संस्करण (Hindi Edition)</span>
+    <span class="badge">संस्करण 1.0</span>
+    <span class="badge">डेस्कटॉप क्लाइंट</span>
+    <span class="badge">ब्राउज़र-मुक्त एक्सेस</span>
+  </div>
+</div>
+
+<h2>1. परिचय एवं मुख्य उद्देश्य (एजेंट क्या है?)</h2>
+<p>
+  <strong>UserLoginAgent</strong> एक सुरक्षित विंडोज़ डेस्कटॉप सॉफ्टवेयर है, जिसके ज़रिए कंपनी के कर्मचारी (Employees) एवं एडमिन <strong>बिना किसी वेब ब्राउज़र को खोले</strong> सीधे अपने कंप्यूटर पर कंपनी के शेयर्ड फ़ोल्डर्स को एक्सेस कर सकते हैं।
+</p>
+<div class="alert-box info">
+  <strong>मुख्य फ़ायदा:</strong> जैसे ही आप लॉगिन करते हैं, आपके कंप्यूटर में "This PC" (My Computer) के अंदर एक नई वर्चुअल ड्राइव <strong>R: ("Remote Drive")</strong> अपने आप बन जाती है और आपके सभी अधिकृत फ़ोल्डर्स उसमें दिखने लगते हैं।
+</div>
+
+<h2>2. लॉगिन करने का आसान तरीका (स्टेप-बाय-स्टेप)</h2>
+<div class="avoid-break">
+  <p><span class="step-num">1</span> <strong>एजेंट चलाएं:</strong> फ़ोल्डर में मौजूद <code>run.bat</code> पर डबल-क्लिक करें।</p>
+  <p><span class="step-num">2</span> <strong>सर्वर यूआरएल:</strong> स्क्रीन पर पहले से <code>https://pcaccess.ourdemos.com</code> लिखा आएगा, आपको सिर्फ <strong>[ENTER]</strong> दबाना है।</p>
+  <p><span class="step-num">3</span> <strong>आईडी और पासवर्ड डालें:</strong> अपना यूज़रनेम/ईमेल और पासवर्ड दर्ज करें (सुरक्षा के लिए पासवर्ड <code>***</code> रूप में टाइप होगा)।</p>
+  <p><span class="step-num">4</span> <strong>लॉगिन याद रखें:</strong> <em>"Remember credentials on this PC? (Y/n)"</em> पूछने पर <strong>Y</strong> दबाएं, ताकि अगली बार 1-क्लिक में लॉगिन हो सके।</p>
+  <p><span class="step-num">5</span> <strong>R: ड्राइव एक्सेस करें:</strong> लॉगिन सफल होते ही विंडोज़ एक्सप्लोरर में <strong>R:\ ("Remote Drive")</strong> खुल जाएगी।</p>
+</div>
+
+<h2>3. टर्मिनल में बटन दबाने पर क्या एक्शन होगा? (Key Reference)</h2>
+<p>जब सॉफ्टवेयर की काली कंसोल विंडो खुली हो, तब आप कीबोर्ड से सीधे ये बटन दबा सकते हैं:</p>
+
+<table class="avoid-break">
+  <thead>
+    <tr>
+      <th style="width: 14%;">की (Key)</th>
+      <th style="width: 22%;">कमांड का नाम</th>
+      <th style="width: 28%;">मतलब (Meaning)</th>
+      <th style="width: 36%;">क्या दबाने पर क्या होगा? (Exact Action)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="key-badge">S</span></td>
+      <td><strong>Session Status</strong></td>
+      <td>वर्तमान स्थिति जांचें</td>
+      <td>स्क्रीन पर आपका नाम, रोल (Admin/User), ड्राइव R: एक्टिव है या नहीं, और फ़ोल्डर्स की संख्या दिखाएगा।</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">O</span></td>
+      <td><strong>Open Drive</strong></td>
+      <td>ड्राइव खोलें</td>
+      <td>विंडोज़ एक्सप्लोरर में सीधे <code>R:\</code> (Remote Drive) का फ़ोल्डर खोल देगा।</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">R</span></td>
+      <td><strong>Refresh Folders</strong></td>
+      <td>फ़ोल्डर्स रीफ़्रेश करें</td>
+      <td>बिना ऐप बंद किए सर्वर से नए असाइन किए गए फ़ोल्डर्स तुरंत R: ड्राइव में जोड़ देगा।</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">C</span></td>
+      <td><strong>Switch User</strong></td>
+      <td>दूसरे यूज़र से लॉगिन</td>
+      <td>मौजूदा ड्राइव हटाएगा, पुराना पासवर्ड मिटाएगा और नए यूज़र (जैसे राहुल या एडमिन) से लॉगिन करने का विकल्प देगा।</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">L</span> / <span class="key-badge">Q</span> / <span class="key-badge">X</span></td>
+      <td><strong>Logout & Exit</strong></td>
+      <td>लॉगआउट एवं बंद करें</td>
+      <td>वर्चुअल ड्राइव <code>R:</code> को सुरक्षित अनमाउंट (हटा) देगा और सॉफ्टवेयर पूरी तरह बंद हो जाएगा।</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">Ctrl + C</span></td>
+      <td><strong>Force Exit</strong></td>
+      <td>तत्काल बंद करें</td>
+      <td>ड्राइव को सुरक्षित हटाकर विंडो तुरंत बंद कर देगा।</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>4. बैच फ़ाइल्स (Batch Scripts) का उपयोग</h2>
+<p>यदि विंडो बैकग्राउंड में चल रही हो या आप सीधे स्क्रिप्ट चलाना चाहें:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>बैच फ़ाइल का नाम</th>
+      <th>कमांड</th>
+      <th>कार्य एवं उपयोग</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong><code>run.bat</code></strong></td>
+      <td><code>UserLoginAgent.exe</code></td>
+      <td>डेस्कटॉप एजेंट को चालू करता है और R: ड्राइव बनाता है।</td>
+    </tr>
+    <tr>
+      <td><strong><code>status.bat</code></strong></td>
+      <td><code>UserLoginAgent.exe status</code></td>
+      <td>बिना ऐप को रोके जांचता है कि एजेंट और ड्राइव R: एक्टिव हैं या नहीं।</td>
+    </tr>
+    <tr>
+      <td><strong><code>logout.bat</code></strong></td>
+      <td><code>UserLoginAgent.exe logout</code></td>
+      <td>ड्राइव <code>R:</code> को हटाकर चल रहे एजेंट को सुरक्षित बंद (लॉगआउट) कर देता है।</td>
+    </tr>
+    <tr>
+      <td><strong><code>stop.bat</code></strong></td>
+      <td><code>UserLoginAgent.exe stop</code></td>
+      <td><code>logout.bat</code> का ही दूसरा नाम (Stop Command)।</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>5. एडमिन बनाम सामान्य कर्मचारी (Permissions)</h2>
+<div class="alert-box">
+  <ul>
+    <li><strong>एडमिन (user_type_id = 1):</strong> लॉगिन करने पर कंपनी के सभी कनेक्टेड कंप्यूटरों के सभी शेयर्ड फ़ोल्डर्स एक्सेस कर सकता है।</li>
+    <li><strong>कर्मचारी (user_type_id = 2):</strong> लॉगिन करने पर सिर्फ वही फ़ोल्डर्स दिखेंगे जिनकी अनुमति (Permission) एडमिन ने वेब पोर्टल से दी है।</li>
+  </ul>
+</div>
+
+<div class="footer">
+  <span>PCAccess Enterprise Solutions</span>
+  <span>दस्तावेज़ 1: UserLoginAgent (हिंदी संस्करण)</span>
+</div>
+
+</body>
+</html>

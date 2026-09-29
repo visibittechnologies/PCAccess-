@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PCAccess - Full Project Presentation (English)</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 13px;
+    background: #fff;
+    margin: 0; padding: 0;
+  }
+  .cover-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+    color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 16px rgba(30,27,75,0.2);
+  }
+  .cover-card h1 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .cover-card .tagline { font-size: 15px; color: #c7d2fe; margin-bottom: 14px; }
+  .badge-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.18);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 17px;
+    color: #1e1b4b;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 22px;
+    margin-bottom: 10px;
+  }
+  .alert-box {
+    background: #eef2ff;
+    border-left: 4px solid #4f46e5;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 12.5px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background-color: #f1f5f9; color: #0f172a; font-weight: 700; }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  .diagram-box {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 16px;
+    border-radius: 8px;
+    font-family: Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre;
+    margin: 14px 0;
+  }
+  .step-box { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .step-num {
+    background: #4338ca;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .step-content { flex: 1; }
+  .page-break { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+  .footer {
+    margin-top: 26px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover-card">
+  <h1>PCAccess — Full Technical Presentation</h1>
+  <div class="tagline">Enterprise Remote PC Access, Bi-Directional Streaming & Virtual Drive Ecosystem</div>
+  <div class="badge-row">
+    <span class="badge">English Edition</span>
+    <span class="badge">Architecture & Workflow</span>
+    <span class="badge">Tech Stack: .NET 4.8 + SignalR</span>
+    <span class="badge">Zero-Trust Outbound</span>
+  </div>
+</div>
+
+<h2>1. Executive Summary</h2>
+<p>
+  <strong>PCAccess</strong> is an enterprise remote PC access and distributed file management platform that allows companies to connect on-premise workstations and shared directories to authenticated users globally without complex VPN setups, static public IPs, or router firewall modifications.
+</p>
+<div class="alert-box">
+  <strong>Key Architecture:</strong> The web portal (<code>https://pcaccess.ourdemos.com</code>) provides central administrative control, while desktop employees access shared files seamlessly through a locally mounted <strong>R: Virtual Drive</strong> in Windows Explorer.
+</div>
+
+<h2>2. High-Level System Architecture</h2>
+<div class="diagram-box">
+┌───────────────────────────┐                     ┌─────────────────────────────┐
+│ HOST MACHINE (Office PC)  │  Outbound WSS/HTTPS │  CENTRAL ASP.NET WEB SERVER │
+│ • FileAccessAgent Service │────────────────────&gt;│  • OWIN / SignalR Hub      │
+│ • Local Folder Streaming  │   (Port 443 Only)   │  • REST API Controllers     │
+└───────────────────────────┘                     └──────────────┬──────────────┘
+                                                                 │ ADO.NET
+                                                                 v
+┌───────────────────────────┐                     ┌─────────────────────────────┐
+│ CLIENT PC (Employee)      │   REST Auth &amp; Sync  │      Microsoft SQL Server   │
+│ • UserLoginAgent          │&lt;────────────────────│ • Devices &amp; Folder Rights   │
+│ • Mounts R:\ Remote Drive │                     │ • Zero-Loss Stored Procs    │
+└───────────────────────────┘                     └─────────────────────────────┘
+</div>
+
+<div class="page-break"></div>
+
+<h2>3. Technology Stack Inventory</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%;">Layer / Component</th>
+      <th style="width: 25%;">Technology</th>
+      <th style="width: 53%;">Purpose & Technical Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Web Backend</strong></td>
+      <td>ASP.NET MVC 5 (.NET Framework 4.8)</td>
+      <td>Enterprise-grade controllers, session security, robust view rendering on Windows Server / IIS.</td>
+    </tr>
+    <tr>
+      <td><strong>Real-Time Pipeline</strong></td>
+      <td>Microsoft SignalR 2.4.3 (OWIN)</td>
+      <td>Full-duplex WebSocket hub managing device heartbeats, instant disconnect detection, and file streams.</td>
+    </tr>
+    <tr>
+      <td><strong>Host Desktop Agent</strong></td>
+      <td>C# Console / Windows Service (FileAccessAgent)</td>
+      <td>24x7 background folder provider with automatic 6-digit PIN handshake.</td>
+    </tr>
+    <tr>
+      <td><strong>Client Desktop Agent</strong></td>
+      <td>C# Console Client (UserLoginAgent)</td>
+      <td>Interactive desktop app that authenticates users and mounts virtual drive <code>R:</code> via Win32 kernel calls.</td>
+    </tr>
+    <tr>
+      <td><strong>Database Layer</strong></td>
+      <td>Microsoft SQL Server + Pure Stored Procs</td>
+      <td>Zero raw SQL in C#. Enforces role-based permissions, transactional integrity, and connection pooling.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. Complete Business Workflow</h2>
+<div class="avoid-break">
+  <div class="step-box">
+    <div class="step-num">1</div>
+    <div class="step-content"><strong>Device Registration:</strong> Office PC launches <code>FileAccessAgent</code>; Administrator inputs the 6-digit code on the Web Portal.</div>
+  </div>
+  <div class="step-box">
+    <div class="step-num">2</div>
+    <div class="step-content"><strong>Folder Permissioning:</strong> Administrator assigns specific local folders to employees with View, Download, or Upload rights.</div>
+  </div>
+  <div class="step-box">
+    <div class="step-num">3</div>
+    <div class="step-content"><strong>1-Click Desktop Mount:</strong> Employee runs <code>UserLoginAgent</code>; drive <code>R:</code> is instantly created under "This PC".</div>
+  </div>
+  <div class="step-box">
+    <div class="step-num">4</div>
+    <div class="step-content"><strong>Secure Native Browsing:</strong> Employee opens files directly inside standard desktop apps (Word, Excel, CAD, Explorer).</div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>PCAccess Enterprise Solutions</span>
+  <span>Document 3: Project Presentation (English)</span>
+</div>
+
+</body>
+</html>

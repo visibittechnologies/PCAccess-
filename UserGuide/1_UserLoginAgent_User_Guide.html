@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PCAccess - UserLoginAgent User Guide</title>
+<style>
+  @page {
+    size: A4;
+    margin: 16mm 14mm 16mm 14mm;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 13.5px;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  .header-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    color: #fff;
+    padding: 24px 28px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.15);
+  }
+  .header-card h1 {
+    margin: 0 0 6px 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .header-card .subtitle {
+    font-size: 14px;
+    color: #93c5fd;
+    margin-bottom: 12px;
+  }
+  .badge-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  h2 {
+    font-size: 18px;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 15px;
+    color: #1e3a8a;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  p { margin: 0 0 10px 0; }
+  .alert-box {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .alert-box.info {
+    background: #eff6ff;
+    border-left-color: #2563eb;
+  }
+  .alert-box.warning {
+    background: #fffbeb;
+    border-left-color: #d97706;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px 0;
+    font-size: 12.5px;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+  }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  .key-badge {
+    display: inline-block;
+    background: #0f172a;
+    color: #fff;
+    font-family: Consolas, monospace;
+    font-weight: bold;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .code-block {
+    background: #0f172a;
+    color: #38bdf8;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    line-height: 1.45;
+    margin: 10px 0;
+  }
+  .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+  .page-break { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+  .footer {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <h1>PCAccess — UserLoginAgent User Guide</h1>
+  <div class="subtitle">Direct Desktop Remote Drive (R:) Access System for Employees & Administrators</div>
+  <div class="badge-row">
+    <span class="badge">Version 1.0</span>
+    <span class="badge">Desktop Client</span>
+    <span class="badge">Windows .NET 4.8</span>
+    <span class="badge">Browser-Free Access</span>
+  </div>
+</div>
+
+<h2>1. Introduction & Purpose (Agent Kya Hai?)</h2>
+<p>
+  <strong>UserLoginAgent</strong> ek dedicated desktop console client hai jiske zariye company ke employees aur administrators bina web browser khole apne PC me direct shared folders ko access kar sakte hain.
+</p>
+<div class="alert-box info">
+  <strong>Key Benefit:</strong> User jaise hi agent me apna Username/Email aur Password daal kar login karta hai, Windows Explorer ("This PC") ke andar virtual drive <strong>R: ("Remote Drive")</strong> appear ho jati hai aur uske permitted folders instantly browse karne ke liye tayar ho jate hain.
+</div>
+
+<h2>2. How It Works (Step-by-Step Workflow)</h2>
+<div class="avoid-break">
+  <p><span class="step-num">1</span> <strong>Launch Agent:</strong> <code>UserLoginAgent\run.bat</code> par double-click karein.</p>
+  <p><span class="step-num">2</span> <strong>Enter Server URL:</strong> Website URL enter karein (Default: <code>https://pcaccess.ourdemos.com/</code>).</p>
+  <p><span class="step-num">3</span> <strong>Enter Credentials:</strong> Apna Username/Email aur Password enter karein (Password security ke liye masked <code>***</code> format me type hoga).</p>
+  <p><span class="step-num">4</span> <strong>Remember Credentials:</strong> <code>Y</code> press karne par agli baar direct 1-click Enter se login ho jayega.</p>
+  <p><span class="step-num">5</span> <strong>Auto-Mount R: Drive:</strong> Authenticate hote hi Windows Explorer automatically <strong>R:\ Drive</strong> open karega jisme sabhi permitted folders available honge.</p>
+</div>
+
+<h2>3. Interactive Terminal Commands (Console me Key Reference)</h2>
+<p>Jab agent console window open ho, tab aap keyboard se direct in keys ko press karke actions execute kar sakte hain:</p>
+
+<table class="avoid-break">
+  <thead>
+    <tr>
+      <th style="width: 14%;">Key</th>
+      <th style="width: 20%;">Command Name</th>
+      <th style="width: 28%;">Meaning (Matlab)</th>
+      <th style="width: 38%;">Exact Action (Kya Dabane Pe Kya Hoga)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="key-badge">S</span></td>
+      <td><strong>Session Status</strong></td>
+      <td>Current Session & Health Check</td>
+      <td>Console me User ID, Name, Role (Admin/User), Drive R: Mount Status, Folders Count aur Server Connection live display karega.</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">O</span></td>
+      <td><strong>Open Drive</strong></td>
+      <td>Open Explorer</td>
+      <td>Windows Explorer ko trigger karega aur screen par direct <code>R:\</code> (Remote Drive) folder open kar dega.</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">R</span></td>
+      <td><strong>Refresh Folders</strong></td>
+      <td>Re-fetch Shared Folders</td>
+      <td>Bina agent band kiye server se query karega aur agar Admin ne koi naya folder assign kiya hai to use <code>R:</code> me add kar dega.</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">C</span></td>
+      <td><strong>Switch User</strong></td>
+      <td>Clear Saved Login</td>
+      <td>Current drive unmount karega, saved credentials delete karega aur doosre user (e.g. Rahul se Admin) login karne ke liye prompt dega.</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">L</span> / <span class="key-badge">Q</span> / <span class="key-badge">X</span></td>
+      <td><strong>Logout & Exit</strong></td>
+      <td>Clean Disconnect & Stop</td>
+      <td>Virtual Drive <code>R:</code> ko Windows system se cleanly unmount karega, registry refresh karega aur application safely close ho jayegi.</td>
+    </tr>
+    <tr>
+      <td><span class="key-badge">Ctrl + C</span></td>
+      <td><strong>Force Exit</strong></td>
+      <td>Emergency Stop</td>
+      <td>Shutdown hook call karke drive unmount karega aur instantly window band kar dega.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>4. Batch Scripts Reference (Folder Level Commands)</h2>
+<p>Agar console window minimize ho ya background me chal rahi ho, to <code>UserLoginAgent</code> folder me ready-made batch scripts hain:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Script Name</th>
+      <th>Equivalent CLI Command</th>
+      <th>Description & Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong><code>run.bat</code></strong></td>
+      <td><code>UserLoginAgent.exe</code></td>
+      <td>Agent ko foreground interactive mode me start karta hai.</td>
+    </tr>
+    <tr>
+      <td><strong><code>status.bat</code></strong></td>
+      <td><code>UserLoginAgent.exe status</code></td>
+      <td>Running agent ko bina roke check karta hai ki process active hai ya nahi aur Drive R: mounted hai ya nahi.</td>
+    </tr>
+    <tr>
+      <td><strong><code>logout.bat</code></strong></td>
+      <td><code>UserLoginAgent.exe logout</code></td>
+      <td>Drive <code>R:</code> ko safely unmount karta hai aur background me chal rahe agent process ko band/terminate kar deta hai.</td>
+    </tr>
+    <tr>
+      <td><strong><code>stop.bat</code></strong></td>
+      <td><code>UserLoginAgent.exe stop</code></td>
+      <td><code>logout.bat</code> ka alternate batch file jisse agent aur drive dono safely stop ho jate hain.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>5. Terminal Output Samples</h2>
+
+<h3>A. Successful Login & Drive Mount</h3>
+<div class="code-block">========================================================================
+ [SUCCESS] Welcome, Rahul Sharma! Logged in as: User
+========================================================================
+User ID  : 2
+Email    : rahul@pcaccess.com
+Role     : User
+Folders  : 1 accessible shared folder(s)
+
+---------------------------------------------------------------------------------------------------
+#   | Folder Name          | Host Device      | Status     | Permissions              
+---------------------------------------------------------------------------------------------------
+1   | Company Files        | Sonu-PC          | OFFLINE    | View=✓ Download=✓ Upload=✗
+---------------------------------------------------------------------------------------------------
+
+[REMOTE DRIVE] Mounting virtual drive R: ("Remote Drive")...
+[SUCCESS] Drive R: successfully mounted and active in Windows Explorer!</div>
+
+<h3>B. Inline Status Check [S]</h3>
+<div class="code-block">------------------------------------------------------------------------
+                     CURRENT SESSION STATUS                             
+------------------------------------------------------------------------
+ User Name     : Rahul Sharma
+ Email / ID    : rahul@pcaccess.com (ID: 2)
+ Active Role   : User
+ Remote Drive  : R: [MOUNTED & READY]
+ Folders Count : 1 accessible folder(s)
+ Server URL    : https://pcaccess.ourdemos.com/
+------------------------------------------------------------------------</div>
+
+<h2>6. Role-Based Permissions (Admin vs User)</h2>
+<div class="alert-box">
+  <ul>
+    <li><strong>Admin (user_type_id = 1):</strong> Login karne par system me active sabhi shared folders automatically <code>R:</code> drive me appear hote hain.</li>
+    <li><strong>User / Employee (user_type_id = 2):</strong> Login karne par sirf wahi folders dikhenge jisme Admin ne web portal se <code>can_view = 1</code> assign kiya ho.</li>
+  </ul>
+</div>
+
+<div class="footer">
+  <span>PCAccess Enterprise Solutions</span>
+  <span>Document 1 of 3: UserLoginAgent Guide</span>
+</div>
+
+</body>
+</html>

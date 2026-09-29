@@ -1,0 +1,25 @@
+﻿========================================================================
+   PCAccess - UserLoginAgent (Employee / User Direct Remote Drive)
+========================================================================
+Server URL : https://pcaccess.ourdemos.com
+Default Drive : R: (Remote Drive)
+
+HOW TO USE:
+1. Double-click 'run.bat' to launch the agent.
+2. Server URL will automatically default to: https://pcaccess.ourdemos.com
+   Just press [ENTER].
+3. Enter your Username / Email and Password.
+4. Drive R: ('Remote Drive') will automatically mount and open in Windows Explorer!
+
+COMMANDS WHILE RUNNING:
+  [S] - View current session status & health
+  [O] - Open R: drive in Windows Explorer
+  [R] - Refresh shared folders from server
+  [C] - Clear saved login & switch user
+  [L] or [Q] - Disconnect, unmount drive R:, and Exit safely
+
+BATCH FILES:
+  - run.bat    : Start desktop agent
+  - status.bat : Check if agent and R: drive are active
+  - logout.bat : Disconnect and unmount drive
+========================================================================

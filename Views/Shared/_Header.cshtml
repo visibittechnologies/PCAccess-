@@ -1,0 +1,41 @@
+@using PCAccess.MyFun;
+@{
+    var currentUser = CommanUtilities.Provider.GetCurrent();
+    string profilePhoto = !string.IsNullOrEmpty(currentUser.profile_photo) ? currentUser.profile_photo : "/Content/image/User.png";
+    string userName = !string.IsNullOrEmpty(currentUser.name) ? currentUser.name : "User";
+    string roleName = !string.IsNullOrEmpty(currentUser.RoleName) ? currentUser.RoleName : "Admin";
+}
+<header id="appHeader" class="fixed top-0 left-0 right-0 z-40 h-16 flex items-center justify-between overflow-visible border-b border-slate-200 bg-white/80 backdrop-blur-md pl-6 pr-8 transition-all duration-300">
+    <div id="headerLeftGroup" class="flex items-center gap-4 transition-all duration-300">
+        <button id="menuBtn" class="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 hover:bg-slate-200 transition">
+            <span class="material-symbols-outlined text-xl">menu</span>
+        </button>
+    </div>
+    <div class="flex flex-1"></div>
+    <div class="flex items-center gap-5">
+        <button class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition">
+            <span class="material-symbols-outlined text-xl">notifications</span>
+        </button>
+        <button id="btnFullscreen" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition">
+            <span class="material-symbols-outlined text-xl">fullscreen</span>
+        </button>
+        <div class="relative">
+            <div id="userDropdownBtn" class="flex items-center gap-0 cursor-pointer select-none px-2 py-1 rounded-lg hover:bg-slate-100 transition">
+                <div id="header_user_img" class="relative h-10 w-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
+                    <img id="header_profile_img" alt="User Avatar" class="h-full w-full object-cover" src="@profilePhoto" />
+                </div>
+                <div class="flex flex-col leading-tight text-right px-2">
+                    <span class="text-sm font-semibold text-slate-800">@userName</span>
+                    <span id="header_user_name" class="text-xs text-slate-500">@roleName</span>
+                </div>
+                <span id="arrowIcon" class="material-symbols-outlined text-xl text-slate-600 transition-transform">expand_more</span>
+            </div>
+            <div id="userDropdown" class="absolute right-0 top-12 w-52 bg-white border border-slate-200 shadow-lg rounded-xl py-2 opacity-0 invisible scale-95 transition-all duration-200 z-50">
+                <a href="/Admin/Profile" class="flex items-center gap-2 px-4 py-2 hover:bg-slate-100"><span class="material-symbols-outlined text-lg">person</span> Profile</a>
+                <a href="#" class="flex items-center gap-2 px-4 py-2 hover:bg-slate-100"><span class="material-symbols-outlined text-lg">settings</span> Settings</a>
+                <div class="border-t my-1"></div>
+                <a href="javascript:void(0)" onclick="loginOut()" class="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50"><span class="material-symbols-outlined text-lg">logout</span> Logout</a>
+            </div>
+        </div>
+    </div>
+</header>

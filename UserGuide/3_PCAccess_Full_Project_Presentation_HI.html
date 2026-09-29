@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>PCAccess - संपूर्ण प्रोजेक्ट प्रस्तुति (हिंदी)</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Nirmala UI', 'Mangal', sans-serif;
+    color: #1e293b;
+    line-height: 1.6;
+    font-size: 13px;
+    background: #fff;
+    margin: 0; padding: 0;
+  }
+  .cover-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+    color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 16px rgba(30,27,75,0.2);
+  }
+  .cover-card h1 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; }
+  .cover-card .tagline { font-size: 15px; color: #c7d2fe; margin-bottom: 14px; }
+  .badge-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.18);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 17px;
+    color: #1e1b4b;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 22px;
+    margin-bottom: 10px;
+  }
+  .alert-box {
+    background: #eef2ff;
+    border-left: 4px solid #4f46e5;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 12.5px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background-color: #f1f5f9; color: #0f172a; font-weight: 700; }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  .diagram-box {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 16px;
+    border-radius: 8px;
+    font-family: Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre;
+    margin: 14px 0;
+  }
+  .step-box { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .step-num {
+    background: #4338ca;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .step-content { flex: 1; }
+  .page-break { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+  .footer {
+    margin-top: 26px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover-card">
+  <h1>PCAccess — संपूर्ण तकनीकी प्रस्तुति</h1>
+  <div class="tagline">उन्नत रिमोट पीसी एक्सेस, रियल-टाइम फाइल शेयरिंग एवं वर्चुअल ड्राइव इकोसिस्टम</div>
+  <div class="badge-row">
+    <span class="badge">हिंदी संस्करण (Hindi Edition)</span>
+    <span class="badge">आर्किटेक्चर एवं वर्कफ़्लो</span>
+    <span class="badge">तकनीकी स्टैक: .NET 4.8 + SignalR</span>
+  </div>
+</div>
+
+<h2>1. प्रोजेक्ट का मुख्य उद्देश्य (Executive Summary)</h2>
+<p>
+  <strong>PCAccess</strong> एक आधुनिक कॉर्पोरेट समाधान है जिसके माध्यम से किसी भी कंपनी के ऑफिस कंप्यूटरों के फाइल्स और फ़ोल्डर्स को दुनिया भर में कहीं भी मौजूद अधिकृत कर्मचारियों के लैपटॉप पर सुरक्षित रूप से उपलब्ध कराया जा सकता है। इसमें किसी महंगे वीपीएन (VPN) या जटिल नेटवर्क कॉन्फ़िगरेशन की आवश्यकता नहीं होती।
+</p>
+<div class="alert-box">
+  <strong>मुख्य विशेषता:</strong> केंद्रीय वेब पोर्टल (<code>https://pcaccess.ourdemos.com</code>) से एडमिन सब कुछ नियंत्रित करता है, जबकि कर्मचारी के कंप्यूटर में सीधे <strong>R: वर्चुअल ड्राइव</strong> बन जाती है, जिससे फाइलें लोकल कंप्यूटर की तरह खुलती हैं।
+</div>
+
+<h2>2. सिस्टम का कार्यप्रवाह (Architecture Diagram)</h2>
+<div class="diagram-box">
+┌───────────────────────────┐                     ┌─────────────────────────────┐
+│ मुख्य ऑफिस कंप्यूटर (Host)│  आउटबाउंड WSS/HTTPS │  केंद्रीय वेब सर्वर (Cloud) │
+│ • FileAccessAgent सर्विस  │────────────────────&gt;│  • ASP.NET MVC 5 + SignalR  │
+│ • फ़ोल्डर्स को शेयर करता है│   (पोर्ट 443 केवल)  │  • केंद्रीय एडमिन पोर्टल     │
+└───────────────────────────┘                     └──────────────┬──────────────┘
+                                                                 │ ADO.NET
+                                                                 v
+┌───────────────────────────┐                     ┌─────────────────────────────┐
+│ कर्मचारी का कंप्यूटर (PC) │    लॉगिन एवं सत्यापन │       Microsoft SQL Server  │
+│ • UserLoginAgent          │&lt;────────────────────│ • सुरक्षित स्टोर्ड प्रोसीजर  │
+│ • R:\ ड्राइव बनाता है     │                     │ • यूज़र अनुमतियाँ एवं रोल्स  │
+└───────────────────────────┘                     └─────────────────────────────┘
+</div>
+
+<div class="page-break"></div>
+
+<h2>3. उपयोग की गई तकनीकें (Technology Stack)</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 24%;">घटक (Component)</th>
+      <th style="width: 26%;">तकनीक (Technology)</th>
+      <th style="width: 50%;">भूमिका एवं उपयोग</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>वेब पोर्टल</strong></td>
+      <td>ASP.NET MVC 5 (.NET 4.8)</td>
+      <td>केंद्रीय प्रबंधन, सुरक्षित प्रमाणीकरण एवं एडमिन डैशबोर्ड।</td>
+    </tr>
+    <tr>
+      <td><strong>रियल-टाइम संचार</strong></td>
+      <td>Microsoft SignalR 2.4.3 (OWIN)</td>
+      <td>कंप्यूटरों के ऑनलाइन/ऑफलाइन स्थिति की लाइव जानकारी एवं सुरक्षित डेटा स्ट्रीमिंग।</td>
+    </tr>
+    <tr>
+      <td><strong>होस्ट डेस्कटॉप सर्विस</strong></td>
+      <td>C# Windows Service (FileAccessAgent)</td>
+      <td>ऑफिस पीसी पर 24 घंटे बैकग्राउंड में बिना किसी रुकावट के फ़ोल्डर्स को लाइव रखता है।</td>
+    </tr>
+    <tr>
+      <td><strong>क्लाइंट डेस्कटॉप ऐप</strong></td>
+      <td>C# Console (UserLoginAgent)</td>
+      <td>कर्मचारियों के लिए 1-क्लिक लॉगिन और विंडोज़ एक्सप्लोरर में ड्राइव <code>R:</code> बनाने का कार्य।</td>
+    </tr>
+    <tr>
+      <td><strong>डेटाबेस लेयर</strong></td>
+      <td>Microsoft SQL Server</td>
+      <td>बिना किसी सीधे SQL के केवल स्टोर्ड प्रोसीजर्स के माध्यम से 100% सुरक्षित डेटा प्रबंधन।</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. संपूर्ण व्यावसायिक कार्यप्रवाह (Business Workflow)</h2>
+<div class="avoid-break">
+  <div class="step-box">
+    <div class="step-num">1</div>
+    <div class="step-content"><strong>कंप्यूटर जोड़ना:</strong> ऑफिस पीसी पर एजेंट शुरू होता है; 6-अंकों का पिन वेब पोर्टल पर डालकर कंप्यूटर को सुरक्षित जोड़ा जाता है।</div>
+  </div>
+  <div class="step-box">
+    <div class="step-num">2</div>
+    <div class="step-content"><strong>फ़ोल्डर परमिशन देना:</strong> एडमिन तय करता है कि कौन सा कर्मचारी कौन से फ़ोल्डर को सिर्फ देख (View), डाउनलोड (Download) या अपलोड (Upload) कर सकता है।</div>
+  </div>
+  <div class="step-box">
+    <div class="step-num">3</div>
+    <div class="step-content"><strong>1-क्लिक डेस्कटॉप लॉगिन:</strong> कर्मचारी अपने लैपटॉप पर <code>UserLoginAgent</code> चलाता है और तुरंत <code>R:</code> ड्राइव बन जाती है।</div>
+  </div>
+  <div class="step-box">
+    <div class="step-num">4</div>
+    <div class="step-content"><strong>काम खत्म होने पर बंद करना:</strong> काम पूरा होने पर <code>L</code> दबाने पर ड्राइव सुरक्षित हट जाती है।</div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>PCAccess Enterprise Solutions</span>
+  <span>दस्तावेज़ 3: प्रोजेक्ट प्रस्तुति (हिंदी संस्करण)</span>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,417 @@
+﻿@model PCAccess.Models.FolderBrowseViewModel
+@{
+    ViewBag.Title = Model.folder_name + " | Remote File Browser";
+    Layout = "~/Views/Shared/_Admin_Layout.cshtml";
+    long currentUserId = ViewBag.CurrentUserId != null ? (long)ViewBag.CurrentUserId : 0;
+}
+
+<div class="space-y-6">
+
+    <!-- 1. Top Header & Device / Folder Context -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div class="flex items-center gap-3">
+            <a href="@Url.Action("DeviceFolders", "Admin", new { deviceGuid = Model.device_guid.ToString() })" 
+               title="Back to Device Folders" 
+               class="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors shrink-0 shadow-xs">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight" id="lblFolderName">
+                        @Model.folder_name
+                    </h1>
+                    @if (Model.is_device_online)
+                    {
+                        <span id="headerDeviceStatus" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            @Model.device_name (Online)
+                        </span>
+                    }
+                    else
+                    {
+                        <span id="headerDeviceStatus" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                            @Model.device_name (Offline)
+                        </span>
+                    }
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5 font-mono">
+                    Host PC Path: <span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200/80">@Model.local_path</span>
+                    @if (!string.IsNullOrEmpty(Model.description))
+                    {
+                        <span class="text-slate-400 font-sans ml-2">-- @Model.description</span>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Quick Action Badges -->
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
+                Permissions: 
+                @if (Model.is_owner)
+                {
+                    <strong class="text-emerald-700">Owner (Full)</strong>
+                }
+                else
+                {
+                    <strong class="text-slate-800">@(Model.can_view ? "View" : "")@(Model.can_download ? ", Download" : "")@(Model.can_upload ? ", Upload" : "")@(Model.can_delete ? ", Delete" : "")</strong>
+                }
+            </span>
+        </div>
+    </div>
+
+    <!-- 2. Device Offline Alert (Hidden if online) -->
+    <div id="browserOfflineBanner" class="@(Model.is_device_online ? "hidden" : "flex") p-4 rounded-xl border border-amber-200 bg-amber-50/90 text-amber-900 items-start gap-3 shadow-xs">
+        <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h3 class="text-xs sm:text-sm font-bold leading-snug">
+                Host Workstation is currently Offline
+            </h3>
+            <p class="text-xs text-amber-800/90 mt-0.5 leading-relaxed">
+                The desktop <strong>FileAccessAgent</strong> on <strong>@Model.device_name</strong> is disconnected. Remote directory browsing requires the PC Agent to be online to securely read local files.
+            </p>
+        </div>
+    </div>
+
+    <!-- 3. Interactive Breadcrumb Navigation -->
+    <nav class="flex items-center overflow-x-auto py-2.5 px-4 bg-white rounded-xl border border-slate-200 shadow-xs text-xs sm:text-sm text-slate-600 scrollbar-none">
+        <ol id="breadcrumbList" class="flex items-center space-x-1.5 whitespace-nowrap">
+            <!-- Dynamically populated via JS -->
+            <li class="flex items-center gap-1.5">
+                <a href="@Url.Action("DashboardOverview", "Admin")" class="hover:text-primary transition-colors flex items-center gap-1">
+                    <i data-lucide="home" class="w-3.5 h-3.5"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="text-slate-300">/</li>
+            <li class="flex items-center gap-1.5">
+                <a href="@Url.Action("DeviceFolders", "Admin", new { deviceGuid = Model.device_guid.ToString() })" class="hover:text-primary transition-colors flex items-center gap-1">
+                    <i data-lucide="monitor" class="w-3.5 h-3.5"></i>
+                    <span>@Model.device_name</span>
+                </a>
+            </li>
+            <li class="text-slate-300">/</li>
+            <li class="flex items-center gap-1.5 font-bold text-slate-900">
+                <i data-lucide="folder" class="w-3.5 h-3.5 text-primary"></i>
+                <span id="breadcrumbRoot">@Model.folder_name</span>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- 4. Action Toolbar (Search, Filter, View Mode, Refresh, Up) -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+        
+        <!-- Left: Up Button & Search Input -->
+        <div class="flex items-center gap-2 flex-1">
+            <button id="btnNavUp" type="button" disabled title="Go Up One Directory"
+                    class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0 shadow-xs">
+                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Search Field -->
+            <div class="relative flex-1 max-w-md">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </div>
+                <input type="text" id="txtSearch" 
+                       placeholder="Search files and folders in this directory..." 
+                       class="w-full text-xs sm:text-sm pl-9 pr-8 py-2 rounded-lg border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all placeholder:text-slate-400" />
+                <button id="btnClearSearch" type="button" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right: View Mode Toggle, Item Count & Refresh -->
+        <div class="flex items-center justify-between md:justify-end gap-2 shrink-0">
+            <!-- Directory Summary Count -->
+            <div id="lblItemCount" class="text-xs font-semibold text-slate-500 px-2.5 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
+                <span class="animate-pulse">Loading items...</span>
+            </div>
+
+            <!-- View Mode Toggle (Table vs Grid) -->
+            <div class="inline-flex items-center p-0.5 rounded-lg border border-slate-200 bg-slate-100">
+                <button id="btnViewTable" type="button" title="Table / List View"
+                        class="px-2.5 py-1 rounded-md text-xs font-semibold transition-all bg-white text-slate-900 shadow-xs">
+                    <i data-lucide="list" class="w-4 h-4"></i>
+                </button>
+                <button id="btnViewGrid" type="button" title="Grid / Card View"
+                        class="px-2.5 py-1 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-900 transition-all">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Refresh Button -->
+            <button id="btnRefreshDirectory" type="button" title="Refresh Directory"
+                    class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-xs">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+            </button>
+
+            @if (Model.can_upload)
+            {
+                <!-- Step 6: Upload Button -->
+                <button id="btnOpenUploadModal" type="button" title="Upload File to Current Directory"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors shrink-0">
+                    <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                    <span>Upload</span>
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- 5. Main Content Container (Table View / Grid View / Loading / Empty) -->
+    <div id="browserContentContainer" class="relative min-h-[380px]">
+        
+        <!-- Loading State Skeleton -->
+        <div id="browserLoadingState" class="hidden py-16 text-center space-y-3">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-primary mx-auto flex items-center justify-center animate-spin">
+                <i data-lucide="loader-2" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-sm font-bold text-slate-700">Connecting to Host PC...</h4>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                Reading local directory via FileAccessAgent over secure SignalR channel.
+            </p>
+        </div>
+
+        <!-- Error State Banner -->
+        <div id="browserErrorState" class="hidden py-12 px-6 text-center space-y-3 bg-white rounded-xl border border-rose-200">
+            <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center">
+                <i data-lucide="alert-circle" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-900" id="browserErrorMessage">Unable to read directory</h4>
+            <p class="text-xs text-slate-500 max-w-md mx-auto" id="browserErrorDetails">
+                The folder may not exist, or you may not have permission to access it.
+            </p>
+            <button type="button" onclick="FileBrowserManager.loadDirectory()" 
+                    class="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>Try Again</span>
+            </button>
+        </div>
+
+        <!-- Empty Directory State -->
+        <div id="browserEmptyState" class="hidden py-16 px-6 text-center space-y-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+            <div class="w-16 h-16 rounded-2xl bg-slate-50 text-slate-400 mx-auto flex items-center justify-center">
+                <i data-lucide="folder-open" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">This folder is empty</h3>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                There are no files or subfolders found in this directory.
+            </p>
+        </div>
+
+        <!-- Empty Search State -->
+        <div id="browserEmptySearchState" class="hidden py-16 px-6 text-center space-y-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+            <div class="w-16 h-16 rounded-2xl bg-slate-50 text-slate-400 mx-auto flex items-center justify-center">
+                <i data-lucide="search-x" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">No matching files or folders</h3>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                No items match your search query: <strong id="lblSearchQuery" class="text-slate-800"></strong>.
+            </p>
+            <button type="button" onclick="$('#btnClearSearch').click()" 
+                    class="mt-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+                <span>Clear Search</span>
+            </button>
+        </div>
+
+        <!-- A. Table / List View Container -->
+        <div id="tableViewWrapper" class="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider select-none">
+                            <th class="py-3 px-4 sm:px-5 cursor-pointer hover:bg-slate-100 transition-colors" onclick="FileBrowserManager.changeSort('name')">
+                                <div class="flex items-center gap-1.5">
+                                    <span>Name</span>
+                                    <span id="sortIconName" class="text-slate-400"><i data-lucide="chevrons-up-down" class="w-3.5 h-3.5"></i></span>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition-colors hidden sm:table-cell" onclick="FileBrowserManager.changeSort('type')">
+                                <div class="flex items-center gap-1.5">
+                                    <span>Type</span>
+                                    <span id="sortIconType" class="text-slate-400"><i data-lucide="chevrons-up-down" class="w-3.5 h-3.5"></i></span>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition-colors text-right" onclick="FileBrowserManager.changeSort('size')">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <span>Size</span>
+                                    <span id="sortIconSize" class="text-slate-400"><i data-lucide="chevrons-up-down" class="w-3.5 h-3.5"></i></span>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition-colors text-right hidden md:table-cell" onclick="FileBrowserManager.changeSort('date')">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <span>Last Modified</span>
+                                    <span id="sortIconDate" class="text-slate-400"><i data-lucide="chevrons-up-down" class="w-3.5 h-3.5"></i></span>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-40">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="browserTableBody" class="divide-y divide-slate-100 font-normal">
+                        <!-- Populated by file-browser.js -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- B. Grid / Card View Container -->
+        <div id="gridViewWrapper" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <!-- Populated by file-browser.js -->
+        </div>
+
+        <!-- 6. Pagination Footer -->
+        <div id="browserPagination" class="hidden mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white px-4 py-3 rounded-xl border border-slate-200 text-xs shadow-xs">
+            <span id="paginationInfo" class="text-slate-500 font-medium">
+                Showing 1-50 of 120 items
+            </span>
+            <div class="inline-flex items-center gap-1.5" id="paginationButtons">
+                <!-- Prev / Next buttons generated by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Step 5: Download Progress Toast -->
+    <div id="downloadToast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 max-w-xs animate-fade-in-up">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <i data-lucide="download" class="w-4 h-4 animate-bounce"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold leading-tight truncate" id="downloadToastFileName">Preparing download...</p>
+            <p class="text-[11px] text-slate-400 mt-0.5" id="downloadToastStatus">Connecting to host PC...</p>
+        </div>
+        <button type="button" onclick="document.getElementById('downloadToast').classList.add('hidden')" 
+                class="text-slate-500 hover:text-white transition-colors shrink-0 ml-1">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+    </div>
+    <!-- Step 6: Secure File Upload Modal -->
+    <div id="uploadModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+            <!-- Header -->
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Upload File</h3>
+                        <p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate max-w-xs">
+                            Destination: <span id="uploadTargetFolderDisplay" class="text-slate-700 font-semibold">@Model.folder_name</span>
+                        </p>
+                    </div>
+                </div>
+                <button id="btnCloseUploadModal" type="button" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-5 space-y-4">
+                <!-- Drag & Drop Zone -->
+                <div id="uploadDropZone" class="border-2 border-dashed border-slate-200 hover:border-emerald-500 bg-slate-50/60 hover:bg-emerald-50/20 rounded-xl p-6 text-center transition-all cursor-pointer">
+                    <input type="file" id="uploadFileInput" class="hidden" />
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100/70 text-emerald-600 mx-auto flex items-center justify-center mb-2">
+                        <i data-lucide="file-up" class="w-6 h-6"></i>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-700">
+                        Drag & drop a file here, or <span class="text-emerald-600 underline">browse</span>
+                    </p>
+                    <p class="text-[11px] text-slate-400 mt-1">
+                        Max size: 100 MB • Allowed: PDF, Word, Excel, Images, CSV, Text, Zip, Media
+                    </p>
+                </div>
+
+                <!-- Selected File Card (Hidden until file chosen) -->
+                <div id="uploadSelectedFileCard" class="hidden p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between shadow-2xs">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0" id="uploadFileIconWrapper">
+                            <i data-lucide="file" class="w-4 h-4" id="uploadFileIcon"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-slate-800 truncate" id="uploadFileName">filename.pdf</p>
+                            <p class="text-[11px] text-slate-400 font-mono mt-0.5" id="uploadFileSize">0 KB</p>
+                        </div>
+                    </div>
+                    <button id="btnRemoveSelectedFile" type="button" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors shrink-0">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Validation Error Banner (Hidden unless error) -->
+                <div id="uploadValidationError" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                    <span id="uploadValidationMessage" class="flex-1 font-medium"></span>
+                </div>
+
+                <!-- Duplicate Resolution Option -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
+                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">If file with same name exists:</span>
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer select-none text-slate-700">
+                            <input type="radio" name="conflictOption" value="autorename" checked class="text-emerald-600 focus:ring-emerald-500 rounded" />
+                            <span>Keep Both (e.g. Report (1).pdf)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer select-none text-slate-700">
+                            <input type="radio" name="conflictOption" value="replace" class="text-emerald-600 focus:ring-emerald-500 rounded" />
+                            <span>Replace file</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Progress Bar Section (Hidden until upload begins) -->
+                <div id="uploadProgressSection" class="hidden space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-semibold text-slate-700" id="uploadStatusText">Uploading to server...</span>
+                        <span class="font-bold text-emerald-700" id="uploadPercentText">0%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/80">
+                        <div id="uploadProgressBar" class="h-full bg-emerald-500 transition-all duration-150 rounded-full" style="width: 0%;"></div>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                        <span id="uploadBytesText">0 KB / 0 KB</span>
+                        <span id="uploadStageText">Stage 1/2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+                <button id="btnCancelUpload" type="button" class="px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors">
+                    Cancel
+                </button>
+                <button id="btnStartUpload" type="button" disabled class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all shadow-xs inline-flex items-center gap-1.5">
+                    <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                    <span>Upload</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+@section scripts {
+    <!-- SignalR Hub Scripts (Optional for real-time notification if device goes offline) -->
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="/signalr/hubs"></script>
+
+    <!-- Step 4 File Browser Script -->
+    <script src="~/MyAppjs/Dashboard/file-browser.js?v=@DateTime.Now.Ticks"></script>
+    <script>
+        // @@ts-nocheck
+        $(document).ready(function () {
+            FileBrowserManager.init(
+                '@Model.folder_guid.ToString()',
+                '@Model.folder_name',
+                '@Model.device_name',
+                '@Model.initial_path',
+                @(Model.can_download ? "true" : "false"),
+                @(Model.can_upload ? "true" : "false")
+            );
+        });
+    </script>
+}
+

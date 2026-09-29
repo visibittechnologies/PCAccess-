@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link href="~/Content/Home/Image/favicon.png" rel="icon" type="image/png" />
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <title>PCAccess Dashboard | @ViewBag.Title</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="~/Content/css/custom.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1f9251",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;700&family=Roboto:wght@400;500;700&family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/loader/Loader.css")" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="@Url.Content("~/Scripts/jquery-3.7.0.min.js")"></script>
+    <script src="@Url.Content("~/Content/js/sweetalert.js")"></script>
+
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .dark-blue-color {
+            color: #025584 !important;
+        }
+
+        .bg-custom-grey {
+            background: #3cada612 !important;
+        }
+
+        .active-menu:hover {
+            background-color: #1f9251 !important;
+            color: white !important;
+        }
+
+        .swal2-confirm {
+            background-color: #1f9251 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border-radius: 6px !important;
+            padding: 8px 20px !important;
+        }
+
+            .swal2-confirm:hover {
+                background-color: #1f9251 !important;
+            }
+
+        #BtnSubmitLogin:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+    @RenderSection("styles", false)
+</head>
+<body class="font-display bg-white dark:bg-background-dark text-[#333333] dark:text-slate-200 overflow-x-hidden">
+    <div class="flex w-full">
+        @Html.Partial("_Menu")
+        <div id="mainContent" class="relative flex flex-1 flex-col w-full transition-all duration-300">
+            @Html.Partial("_Header")
+            <div id="pageContent" class="pt-16 transition-all duration-300">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    <!-- ================= Loader ================= -->
+    <div id="loading-div-background">
+        <div id="loading-div">
+            <div class="process-loader"></div>
+            <span class="textspan">Processing... Please wait</span>
+        </div>
+    </div>
+    <script src="@Url.Content("~/MyAppjs/Common/Common.js")"></script>
+    <script src="@Url.Content("~/MyAppjs/Common/drawer.js")"></script>
+    <script src="@Url.Content("~/MyAppjs/Common/master_dataTable.js")"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="~/Content/js/myjs/layout.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Content/js/myjs/checklist.js"></script>
+    <script src="~/Content/js/myjs/task-view.js"></script>
+    <script>lucide.createIcons();</script>
+
+    <script>
+        function loginOut() {
+            $.ajax({
+                url: '/AccountAPI/LoginOut',
+                dataType: 'json',
+                type: "Post",
+                contentType: "application/json; charset=utf-8",
+                beforeSend: function () {
+                    $("#loading-div-background").css("display", "flex");
+                },
+                data: JSON.stringify({ UserName: 'logout', PassWord: '-' }),
+                success: function (data) {
+                    $("#loading-div-background").hide();
+                    if (data.status) {
+                        window.open(location.origin + '/Account/Login', "_self");
+                    } else {
+                        Swal.fire('Info', data.message, 'error');
+                    }
+                },
+                error: function (errormessage) {
+                    $("#loading-div-background").hide();
+                    Swal.fire('Error', "Something went wrong.", 'error');
+                }
+            });
+        }
+    </script>
+    <script>
+        document.getElementById("btnFullscreen")?.addEventListener("click", function () {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                document.getElementById("fullscreenIcon").textContent = "fullscreen_exit";
+            }
+            else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.getElementById("fullscreenIcon").textContent = "fullscreen";
+                }
+            }
+        });
+    </script>
+    <!-- Global Drawer Overlay -->
+    <div id="globalDrawerOverlay" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] hidden transition-opacity duration-300"></div>
+    <div id="globalDrawer" class="fixed top-0 right-0 h-full w-[1080px] bg-white dark:bg-background-dark shadow-2xl z-[70] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-l border-slate-100 dark:border-slate-800">
+        <div class="flex items-center justify-between p-4 border-b border-white/10 bg-primary shadow-lg shadow-primary/20">
+            <h3 id="drawerTitle" class="text-xl font-bold text-white tracking-tight">Form</h3>
+            <button id="closeDrawerBtn" class="p-2 rounded-xl h-10 w-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white transition-all duration-200">
+                <span class="material-symbols-outlined !text-[20px]">close</span>
+            </button>
+        </div>
+        <div id="drawerBody" class="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-50/10">
+        </div>
+    </div>
+
+    @RenderSection("scripts", false)
+</body>
+</html>

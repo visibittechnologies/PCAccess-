@@ -1,0 +1,414 @@
+@using PCAccess.Models
+@model List<SharedFolderModel>
+@{
+    ViewBag.Title = "Shared Folders";
+    Layout = "~/Views/Shared/_Admin_Layout.cshtml";
+
+    var devices = ViewBag.Devices as List<DeviceModel> ?? new List<DeviceModel>();
+    var selectedDevice = ViewBag.SelectedDevice as DeviceModel;
+    bool isDeviceOnline = selectedDevice != null && selectedDevice.status == "online";
+    long currentUserId = ViewBag.CurrentUserId != null ? (long)ViewBag.CurrentUserId : 0;
+}
+
+<main class="px-4 sm:px-6 lg:px-8 pt-4 pb-12 min-h-screen bg-transparent">
+    
+    <!-- 1. Breadcrumb & Navigation -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3">
+        <a href="/Admin/DashboardOverview" class="hover:text-primary transition-colors">Dashboard</a>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+        <a href="/Admin/DashboardOverview" class="hover:text-primary transition-colors">Connected Devices</a>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+        <span class="text-slate-900 font-semibold">@(selectedDevice != null ? selectedDevice.device_name : "Device")</span>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+        <span class="text-primary font-semibold">Shared Folders</span>
+    </nav>
+
+    <!-- 2. Header Section with Device Switcher & Add Folder Button -->
+    <header class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-xs">
+                <i data-lucide="folder-symlink" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-900 leading-tight">Shared Folders</h1>
+                    
+                    @if (selectedDevice != null)
+                    {
+                        <!-- Live Device Online / Offline Pill -->
+                        <span id="pageDeviceStatusBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold @(isDeviceOnline ? "bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-sm" : "bg-rose-50 text-rose-700 border border-rose-200 shadow-sm")">
+                            @if (isDeviceOnline)
+                            {
+                                <span class="relative flex h-2 w-2 mr-1.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                                <span>Online</span>
+                            }
+                            else
+                            {
+                                <span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>
+                                <span>Offline</span>
+                            }
+                        </span>
+                    }
+                </div>
+                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    Configure and authorize local PC directories for remote file access and manage user permissions.
+                </p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- Device Switcher (If user has multiple PCs) -->
+            @if (devices.Count > 1)
+            {
+                <div class="flex items-center gap-2">
+                    <label for="ddlDeviceSwitcher" class="text-xs font-semibold text-slate-600 hidden sm:inline">Device:</label>
+                    <select id="ddlDeviceSwitcher" class="text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-800 shadow-xs focus:ring-2 focus:ring-primary/20 focus:outline-none">
+                        @foreach (var dev in devices)
+                        {
+                            <option value="@dev.device_guid" @(selectedDevice != null && selectedDevice.device_guid == dev.device_guid ? "selected" : "")>
+                                @dev.device_name (@(dev.status == "online" ? "Online" : "Offline"))
+                            </option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <!-- Primary Action: Add Shared Folder Button -->
+            <button id="btnOpenAddFolderModal" type="button" 
+                    data-device-guid="@(selectedDevice != null ? selectedDevice.device_guid.ToString() : "")"
+                    data-device-name="@(selectedDevice != null ? selectedDevice.device_name : "")"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i>
+                <span>Add Shared Folder</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 3. Proactive Offline Warning Banner -->
+    <div id="deviceOfflineBanner" class="mb-6 p-4 rounded-xl border border-amber-200 bg-amber-50/80 text-amber-900 @(isDeviceOnline ? "hidden" : "flex") items-start gap-3 shadow-xs">
+        <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h3 class="text-xs sm:text-sm font-bold leading-snug">
+                <span id="bannerDeviceName">@(selectedDevice != null ? selectedDevice.device_name : "Target PC")</span> is currently Offline
+            </h3>
+            <p class="text-xs text-amber-800/90 mt-0.5 leading-relaxed">
+                The desktop <strong>FileAccessAgent</strong> is disconnected. You can view existing shared folder settings, but adding new folders requires the PC Agent to be online to validate physical directory paths.
+            </p>
+        </div>
+    </div>
+
+    <!-- 4. Shared Folders Table Card -->
+    <section class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden mb-8">
+        
+        <!-- Section Subheader -->
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
+                    <i data-lucide="folders" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Configured Directories</h2>
+                    <p class="text-xs text-slate-500">Local directories registered on this workstation.</p>
+                </div>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                <span id="folderCountBadge">@(Model != null ? Model.Count : 0)</span> Folders
+            </span>
+        </div>
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <!-- Clean Empty State -->
+            <div id="folderEmptyState" class="px-6 py-14 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-primary mx-auto flex items-center justify-center mb-3">
+                    <i data-lucide="folder-search" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900">No shared folders configured</h3>
+                <p class="mt-1 text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+                    You haven't shared any folders from <strong>@(selectedDevice != null ? selectedDevice.device_name : "this PC")</strong> yet. Click below to add a local directory (e.g. <code>D:\CompanyFiles</code>).
+                </p>
+                <div class="mt-5">
+                    <button type="button" onclick="$('#btnOpenAddFolderModal').click()" 
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Add Your First Shared Folder</span>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Desktop / Tablet Table View -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/75 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                            <th class="py-3 px-5">Folder Name</th>
+                            <th class="py-3 px-5">Local PC Path</th>
+                            <th class="py-3 px-5">Access Rights</th>
+                            <th class="py-3 px-5">Status</th>
+                            <th class="py-3 px-5">Configured</th>
+                            <th class="py-3 px-5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="folderTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm">
+                        @foreach (var folder in Model)
+                        {
+                            <tr data-folder-id="@folder.folder_id" class="hover:bg-slate-50/60 transition-colors">
+                                <td class="py-3.5 px-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                                            <i data-lucide="folder" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <a href="@Url.Action("FileBrowser", "Admin", new { folderGuid = folder.folder_guid.ToString() })" class="font-bold text-slate-900 hover:text-primary folder-name-cell transition-colors">@folder.folder_name</a>
+                                            @if (!string.IsNullOrEmpty(folder.description))
+                                            {
+                                                <span class="block text-[11px] text-slate-400 folder-desc-cell truncate max-w-xs">@folder.description</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-5">
+                                    <span class="font-mono text-xs bg-slate-100 text-slate-800 px-2 py-1 rounded border border-slate-200/80 folder-path-cell select-all">
+                                        @folder.local_path
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-5">
+                                    <button type="button" onclick="DeviceFoldersManager.openPermissionsModal(@folder.folder_id, '@folder.folder_name')"
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors">
+                                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                                        <span>@folder.permission_count Users</span>
+                                    </button>
+                                </td>
+                                <td class="py-3.5 px-5">
+                                    @if (folder.is_active)
+                                    {
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                                            Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>
+                                            Inactive
+                                        </span>
+                                    }
+                                </td>
+                                <td class="py-3.5 px-5 text-slate-500 font-medium">
+                                    @folder.CreatedDateFormatted
+                                </td>
+                                <td class="py-3.5 px-5 text-right">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <!-- Browse Files Button -->
+                                        <a href="@Url.Action("FileBrowser", "Admin", new { folderGuid = folder.folder_guid.ToString() })" 
+                                           title="Browse Files" 
+                                           class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary hover:bg-emerald-700 text-white text-xs font-semibold shadow-2xs transition-colors">
+                                            <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+                                            <span>Browse</span>
+                                        </a>
+
+                                        <!-- Permissions Button -->
+                                        <button type="button" title="Manage Permissions" 
+                                                onclick="DeviceFoldersManager.openPermissionsModal(@folder.folder_id, '@folder.folder_name')"
+                                                class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors">
+                                            <i data-lucide="shield" class="w-4 h-4"></i>
+                                        </button>
+                                        
+                                        <!-- Edit Button -->
+                                        <button type="button" title="Edit Folder" 
+                                                onclick="DeviceFoldersManager.openEditFolderModal(@folder.folder_id, '@folder.folder_name', '@folder.local_path', '@folder.description', @(folder.is_active ? "true" : "false"))"
+                                                class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+
+                                        <!-- Remove Button -->
+                                        <button type="button" title="Remove Configuration" 
+                                                onclick="DeviceFoldersManager.confirmDeleteFolder(@folder.folder_id, '@folder.folder_name')"
+                                                class="p-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 text-rose-600 transition-colors">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</main>
+
+<!-- ========================================================================= -->
+<!-- 5. ADD / EDIT SHARED FOLDER MODAL DIALOG                                  -->
+<!-- ========================================================================= -->
+<div id="modalSharedFolder" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all">
+    <div class="relative w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-primary flex items-center justify-center">
+                    <i data-lucide="folder-plus" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 id="modalFolderTitle" class="text-base font-bold text-slate-900">Add Shared Folder</h3>
+                    <p class="text-xs text-slate-500">Configure a local folder on <strong id="modalTargetDeviceName">@(selectedDevice != null ? selectedDevice.device_name : "this PC")</strong></p>
+                </div>
+            </div>
+            <button id="btnCloseFolderModal" type="button" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body Form -->
+        <form id="formSharedFolder" class="p-6 space-y-4">
+            <input type="hidden" id="hdnFolderId" value="0" />
+            <input type="hidden" id="hdnDeviceGuid" value="@(selectedDevice != null ? selectedDevice.device_guid.ToString() : "")" />
+            <input type="hidden" id="hdnIsPathValidated" value="false" />
+
+            <!-- Folder Name -->
+            <div>
+                <label for="txtFolderName" class="block text-xs font-bold text-slate-700 mb-1">Folder Display Name <span class="text-rose-500">*</span></label>
+                <input type="text" id="txtFolderName" required maxlength="150"
+                       placeholder="e.g. Company Documents, Project Files" 
+                       class="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all" />
+            </div>
+
+            <!-- Local Folder Path + Validate Button -->
+            <div>
+                <label for="txtLocalPath" class="block text-xs font-bold text-slate-700 mb-1">
+                    Local Folder Path on PC <span class="text-rose-500">*</span>
+                </label>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="txtLocalPath" required maxlength="500"
+                           placeholder="e.g. D:\CompanyFiles or C:\Users\Documents" 
+                           class="flex-1 font-mono text-xs sm:text-sm px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all" />
+                    
+                    <button id="btnValidatePath" type="button" 
+                            class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-xs transition-colors shrink-0">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span id="btnValidateText">Validate Path</span>
+                    </button>
+                </div>
+
+                <!-- Validation Status Feedback Area -->
+                <div id="validationFeedback" class="mt-2 hidden text-xs p-2.5 rounded-lg border"></div>
+                <p class="text-[11px] text-slate-400 mt-1">
+                    <i data-lucide="shield-alert" class="w-3 h-3 inline mr-1"></i>
+                    The local PC Agent will verify that this directory physically exists and is accessible.
+                </p>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="txtFolderDescription" class="block text-xs font-bold text-slate-700 mb-1">Description (Optional)</label>
+                <textarea id="txtFolderDescription" rows="2" maxlength="500"
+                          placeholder="Brief description of the files contained in this folder..." 
+                          class="w-full text-xs sm:text-sm px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all"></textarea>
+            </div>
+
+            <!-- Active Status Toggle (For Edit) -->
+            <div id="activeToggleContainer" class="hidden items-center justify-between pt-2 border-t border-slate-100">
+                <span class="text-xs font-semibold text-slate-700">Folder Remote Access Status</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chkFolderIsActive" class="sr-only peer" checked>
+                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+            </div>
+        </form>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+            <button id="btnCancelFolderModal" type="button" class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors">
+                Cancel
+            </button>
+            <button id="btnSaveSharedFolder" type="button" disabled
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>Save Folder</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- 6. PERMISSIONS MANAGEMENT MODAL DIALOG                                    -->
+<!-- ========================================================================= -->
+<div id="modalPermissions" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-primary flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Access Permissions</h3>
+                    <p class="text-xs text-slate-500">Folder: <strong id="permModalFolderName" class="text-primary">--</strong></p>
+                </div>
+            </div>
+            <button id="btnClosePermModal" type="button" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Permissions Table Body -->
+        <div class="p-6">
+            <input type="hidden" id="hdnPermFolderId" value="0" />
+            <div class="overflow-x-auto border border-slate-200/80 rounded-xl">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                            <th class="py-3 px-4">User</th>
+                            <th class="py-3 px-3 text-center">View</th>
+                            <th class="py-3 px-3 text-center">Download</th>
+                            <th class="py-3 px-3 text-center">Upload</th>
+                            <th class="py-3 px-3 text-center">Delete</th>
+                            <th class="py-3 px-4 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="permTableBody" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-slate-400">Loading permissions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 flex items-center gap-2 text-xs text-slate-500">
+                <i data-lucide="info" class="w-4 h-4 text-primary shrink-0"></i>
+                <span>Device owner always maintains full permissions. Changes take effect immediately.</span>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end">
+            <button id="btnDonePermModal" type="button" class="px-4 py-2 rounded-lg text-xs font-semibold bg-primary hover:bg-emerald-700 text-white transition-colors">
+                Done
+            </button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <!-- SignalR Client Scripts -->
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="/signalr/hubs"></script>
+
+    <!-- Step 3 Device Folders Script -->
+    <script src="~/MyAppjs/Dashboard/device-folders.js?v=@DateTime.Now.Ticks"></script>
+    <script>
+        $(document).ready(function () {
+            DeviceFoldersManager.init(@currentUserId, '@(selectedDevice != null ? selectedDevice.device_guid.ToString() : "")');
+        });
+    </script>
+}

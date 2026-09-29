@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PCAccess - Full Project Presentation & Architecture</title>
+<style>
+  @page {
+    size: A4;
+    margin: 16mm 14mm 16mm 14mm;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 13px;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  .cover-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+    color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 16px rgba(30,27,75,0.2);
+  }
+  .cover-card h1 {
+    margin: 0 0 8px 0;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .cover-card .tagline {
+    font-size: 15px;
+    color: #c7d2fe;
+    margin-bottom: 14px;
+  }
+  .badge-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.18);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  h2 {
+    font-size: 17px;
+    color: #1e1b4b;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 22px;
+    margin-bottom: 10px;
+  }
+  h3 {
+    font-size: 14px;
+    color: #4338ca;
+    margin-top: 14px;
+    margin-bottom: 6px;
+  }
+  p { margin: 0 0 10px 0; }
+  .grid-2 {
+    display: flex;
+    gap: 16px;
+    margin: 12px 0;
+  }
+  .card {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .card h4 {
+    margin: 0 0 6px 0;
+    font-size: 13.5px;
+    color: #1e293b;
+  }
+  .card p {
+    font-size: 12px;
+    color: #475569;
+    margin: 0;
+  }
+  .alert-box {
+    background: #eef2ff;
+    border-left: 4px solid #4f46e5;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 12.5px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+  }
+  tr:nth-child(even) { background-color: #f8fafc; }
+  .diagram-box {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 16px;
+    border-radius: 8px;
+    font-family: Consolas, monospace;
+    font-size: 11.5px;
+    line-height: 1.45;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 14px 0;
+  }
+  .step-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .step-num {
+    background: #4338ca;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .step-content { flex: 1; }
+  .step-content strong { color: #0f172a; }
+  .page-break { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+  .footer {
+    margin-top: 26px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover-card">
+  <h1>PCAccess — Full Project Presentation</h1>
+  <div class="tagline">Enterprise Remote PC Access, Bi-Directional Streaming & Virtual Drive Ecosystem</div>
+  <div class="badge-row">
+    <span class="badge">Architecture & Workflow</span>
+    <span class="badge">Tech Stack: .NET 4.8 + SignalR</span>
+    <span class="badge">Zero-Trust Outbound</span>
+    <span class="badge">Dual-Agent System</span>
+  </div>
+</div>
+
+<h2>1. Executive Summary: What is PCAccess?</h2>
+<p>
+  <strong>PCAccess</strong> ek secure, enterprise-ready remote file sharing aur PC access platform hai jo businesses ko without VPN, without complex port-forwarding aur without public IP ke unke remote machines ke physical folders ko centrally connect aur manage karne ki suvidha deta hai.
+</p>
+<div class="alert-box">
+  <strong>Key Innovation:</strong> Central web dashboard se devices aur folder permissions manage hoti hain, jabki desktop par <strong>UserLoginAgent</strong> automatically local virtual drive <strong>R: ("Remote Drive")</strong> mount kar deta hai, jisse employees ko lagta hai ki files unke apne PC me local folder ki tarah open ho rahi hain.
+</div>
+
+<h2>2. End-to-End System Architecture</h2>
+<div class="diagram-box">
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   PCAccess ECOSYSTEM                                   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+
+    [ HOST MACHINE (Office PC) ]                     [ CENTRAL CLOUD / WEB SERVER ]
+    ┌──────────────────────────┐                     ┌─────────────────────────────┐
+    │     FileAccessAgent      │  Outbound WSS/HTTPS │  ASP.NET MVC 5 (.NET 4.8)   │
+    │  (Windows Service/App)   │────────────────────&gt;│  • OWIN / SignalR DeviceHub │
+    │  • 6-Digit PIN Pairing   │  (No Open Ports!)   │  • REST API Controllers     │
+    │  • Local Drive Reader    │                     │  • Web Admin Dashboard      │
+    └──────────────────────────┘                     └──────────────┬──────────────┘
+                                                                    │
+                                                            ADO.NET │ Stored Procedures
+                                                                    v
+                                                     ┌─────────────────────────────┐
+                                                     │         SQL Server          │
+                                                     │ • tbl_device & tbl_user     │
+                                                     │ • tbl_shared_folder         │
+                                                     │ • tbl_shared_folder_perm    │
+                                                     └──────────────┬──────────────┘
+                                                                    │ REST Auth
+    [ CLIENT WORKSTATION (Employee Laptop) ]                        v
+    ┌───────────────────────────────────────────────────────────────┴──────────────┐
+    │                               UserLoginAgent                                 │
+    │  1. Authenticates via Username / Password & REST API                         │
+    │  2. Fetches Authorized Folders & Permissions (View/Download/Upload)          │
+    │  3. Mounts Virtual Windows Drive: R:\ ("Remote Drive") via Win32             │
+    │  4. User browses shared files natively in Windows Explorer!                  │
+    └──────────────────────────────────────────────────────────────────────────────┘
+</div>
+
+<div class="page-break"></div>
+
+<h2>3. Complete Technology Stack</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 20%;">Component</th>
+      <th style="width: 25%;">Technology Used</th>
+      <th style="width: 55%;">Role & Technical Rationale</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Web Application</strong></td>
+      <td>ASP.NET MVC 5 (.NET Framework 4.8)</td>
+      <td>Server-side rendering, robust routing, session management, secure controllers (<code>AdminController</code>, <code>DeviceAPIController</code>, <code>UserAgentAPIController</code>).</td>
+    </tr>
+    <tr>
+      <td><strong>Real-Time Messaging</strong></td>
+      <td>Microsoft SignalR 2.4.3 (OWIN)</td>
+      <td>Persistent full-duplex WebSocket connection between web browser and host agents. Handles device heartbeats, online/offline status, and streaming.</td>
+    </tr>
+    <tr>
+      <td><strong>Frontend UI</strong></td>
+      <td>Razor Views + Pure CSS (Design System) + Vanilla JS</td>
+      <td>Corporate responsive UI without heavy CSS libraries; SignalR client (<code>jquery.signalR-2.4.3.min.js</code>) for real-time live pulses.</td>
+    </tr>
+    <tr>
+      <td><strong>Host Desktop Agent</strong></td>
+      <td>C# Console / Windows Service (FileAccessAgent)</td>
+      <td>Runs in background on the PC hosting files. Connects outbound to SignalR Hub; generates temporary 6-digit pairing code.</td>
+    </tr>
+    <tr>
+      <td><strong>Client Desktop Agent</strong></td>
+      <td>C# Console App (UserLoginAgent)</td>
+      <td>Runs on employee desktop. Authenticates via REST, creates staging junctions, and mounts virtual drive <code>R:</code> in Windows Explorer.</td>
+    </tr>
+    <tr>
+      <td><strong>Drive Virtualization</strong></td>
+      <td>Win32 APIs (<code>DefineDosDevice</code>, <code>subst</code>, <code>SHChangeNotify</code>)</td>
+      <td>Native Windows OS kernel-level drive mapping without needing expensive third-party driver installations.</td>
+    </tr>
+    <tr>
+      <td><strong>Database Layer</strong></td>
+      <td>Microsoft SQL Server + Pure Stored Procedures</td>
+      <td>Zero raw SQL in C# code. All actions encapsulated in procedures (<code>proc_device_manager</code>, <code>proc_user_agent_auth</code>, etc.) with strict manual execution policy.</td>
+    </tr>
+    <tr>
+      <td><strong>Serialization</strong></td>
+      <td>Newtonsoft.Json (v13.0.3)</td>
+      <td>High-speed JSON serialization for network payloads and local configuration files (<code>agent_config.json</code>, <code>user_agent_config.json</code>).</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. Step-by-Step Business Workflow</h2>
+
+<div class="avoid-break">
+  <div class="step-box">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <strong>Host Registration & Pairing:</strong> Host PC par <code>FileAccessAgent</code> start hota hai aur ek temporary 6-digit PIN screen par aata hai. Admin web portal me ye PIN enter karke device pair karta hai. Device permanently bind ho jata hai.
+    </div>
+  </div>
+
+  <div class="step-box">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <strong>Folder Sharing & Permission Masking:</strong> Admin kisi bhi connected host PC ke folders ko register karta hai aur users/roles ke liye granular rights set karta hai (View, Download, Upload).
+    </div>
+  </div>
+
+  <div class="step-box">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <strong>Employee 1-Click Desktop Login:</strong> Employee apne PC par <code>UserLoginAgent</code> launch karta hai aur apne credentials enter karta hai. System uske role aur permissions ko verify karta hai.
+    </div>
+  </div>
+
+  <div class="step-box">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <strong>Native Drive R: Mount:</strong> User ke PC me instant virtual drive <code>R:</code> mount hoti hai. Employee kisi bhi standard Windows software (Excel, Word, Explorer) se in folders ko directly access kar sakta hai.
+    </div>
+  </div>
+
+  <div class="step-box">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <strong>Session Control & Logout:</strong> Jab user ka kaam khatam ho, to console me <code>L</code> ya <code>Q</code> press karke ya <code>logout.bat</code> chala kar drive unmount aur safe logout ho jata hai.
+    </div>
+  </div>
+</div>
+
+<h2>5. Security & Zero-Trust Architecture</h2>
+<div class="grid-2 avoid-break">
+  <div class="card">
+    <h4>🛡️ Outbound-Only Communication</h4>
+    <p>Host PC aur Client PC dono sirf outbound HTTPS/WSS (Port 443) traffic bhejte hain. Router me koi bhi incoming port open karne ki zaroorat nahi hoti.</p>
+  </div>
+  <div class="card">
+    <h4>🔒 Granular Permission Enforcement</h4>
+    <p>Database level par Stored Procedures har folder ke liye View, Download aur Upload rights check karte hain. Users sirf authorized data hi access kar sakte hain.</p>
+  </div>
+</div>
+
+<div class="footer">
+  <span>PCAccess Enterprise Solutions</span>
+  <span>Document 3 of 3: Project Presentation & Architecture</span>
+</div>
+
+</body>
+</html>

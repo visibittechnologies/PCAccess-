@@ -1,0 +1,566 @@
+@model PCAccess.Models.AdminDashboardViewModel
+@{
+    ViewBag.Title = "File Access Dashboard";
+    Layout = "~/Views/Shared/_Admin_Layout.cshtml";
+
+    var devices = (Model != null && Model.Devices != null)
+        ? Model.Devices
+        : ((ViewBag.DeviceList as List<PCAccess.Models.DeviceModel>) ?? new List<PCAccess.Models.DeviceModel>());
+    var sharedFolders = (Model != null && Model.SharedFolders != null)
+        ? Model.SharedFolders
+        : new List<PCAccess.Models.SharedFolderModel>();
+    var recentActivities = (Model != null && Model.RecentActivities != null)
+        ? Model.RecentActivities
+        : new List<PCAccess.Models.DashboardActivityItemModel>();
+
+    long currentUserId = ViewBag.CurrentUserId != null ? (long)ViewBag.CurrentUserId : 0;
+    int onlineCount = 0;
+    if (devices != null)
+    {
+        foreach (var dev in devices)
+        {
+            if (dev != null && dev.status == "online")
+            {
+                onlineCount++;
+            }
+        }
+    }
+}
+
+@* 
+================================================================================
+VIEW: DashboardOverview.cshtml
+AUTHOR: Antigravity / Senior .NET Developer
+DATE: 2026-09-22
+PURPOSE:
+  Primary control canvas for the File Access System.
+  Displays live connected devices from database, summary metrics, shared folders,
+  recent activity feed, and the real-time "Add Device" pairing modal.
+
+REASON & ARCHITECTURAL PATTERN:
+  - Follows existing _Admin_Layout.cshtml layout.
+  - Strictly uses Tailwind CSS with Primary emerald tokens (#1f9251) and Manrope typography.
+  - Dynamically renders live database records with SignalR real-time DOM update hooks.
+================================================================================
+*@
+
+
+<style>
+    @@media (max-width: 639px) {
+        .device-desktop-view { display: none !important; }
+        .device-mobile-view { display: block !important; }
+    }
+    @@media (min-width: 640px) {
+        .device-desktop-view { display: block !important; }
+        .device-mobile-view { display: none !important; }
+    }
+</style>
+
+<!-- Main Content Canvas -->
+<main class="px-4 sm:px-6 lg:px-8 pt-4 pb-12 min-h-screen bg-transparent">
+    
+    <!-- 1. Dashboard Header -->
+    <header class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 leading-none">Dashboard</h1>
+            <p class="mt-1.5 text-xs sm:text-sm text-slate-500 font-medium">Manage and access your connected devices and shared files.</p>
+        </div>
+
+        <!-- Primary Action: Connect New PC -->
+        <div class="flex items-center gap-2.5 self-start sm:self-auto">
+            <button id="btnAddDeviceHeader" type="button" 
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Connect PC</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- 2. Summary Cards (4 Columns Responsive Grid)                              -->
+    <!-- ========================================================================= -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 mb-6 lg:mb-8">
+        
+        <!-- Card 1: Connected Devices -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Connected Devices</span>
+                <div class="w-9 h-9 rounded-lg bg-emerald-50 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-200">
+                    <i data-lucide="monitor" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="flex items-baseline gap-2">
+                    <span id="summaryTotalDevices" class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">@devices.Count</span>
+                    <span class="text-xs font-medium text-slate-500">registered</span>
+                </div>
+                <div id="summaryOnlineContainer" class="mt-1.5 flex items-center gap-1.5">
+                    @if (onlineCount > 0)
+                    {
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span id="summaryOnlineCount" class="text-xs font-semibold text-emerald-700">@onlineCount Online now</span>
+                    }
+                    else
+                    {
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                        <span id="summaryOnlineCount" class="text-xs font-semibold text-slate-500">0 Online now</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Shared Folders -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Shared Folders</span>
+                <div class="w-9 h-9 rounded-lg bg-emerald-50 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-200">
+                    <i data-lucide="folder" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="flex items-baseline gap-2">
+                    <span id="summaryTotalFolders" class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">@sharedFolders.Count</span>
+                    <span class="text-xs font-medium text-slate-500">@(sharedFolders.Count == 1 ? "folder" : "folders")</span>
+                </div>
+                <p class="mt-1.5 text-xs text-slate-500 font-medium">Ready for remote access</p>
+            </div>
+        </div>
+
+        <!-- Card 3: Storage Drive -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Remote Drive</span>
+                <div class="w-9 h-9 rounded-lg bg-emerald-50 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-200">
+                    <i data-lucide="hard-drive" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">@(devices.Count > 0 ? "R:" : "--")</span>
+                    <span class="text-xs font-medium text-slate-500">Virtual Drive</span>
+                </div>
+                <p class="mt-1.5 text-xs text-slate-500 font-medium">Mounted via FileAccessAgent</p>
+            </div>
+        </div>
+
+        <!-- Card 4: Recent Activity -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recent Activity</span>
+                <div class="w-9 h-9 rounded-lg bg-emerald-50 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-200">
+                    <i data-lucide="activity" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">@recentActivities.Count</span>
+                    <span class="text-xs font-medium text-slate-500">events</span>
+                </div>
+                <p class="mt-1.5 text-xs text-slate-500 font-medium">Recorded in active session</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 3. Connected Devices Section (Real Database Devices + SignalR)             -->
+    <!-- ========================================================================= -->
+    <section class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden mb-6 lg:mb-8">
+        <!-- Section Header -->
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Connected Devices</h2>
+                    <p class="text-xs text-slate-500">Authorized PCs and workstations ready for remote file operations.</p>
+                </div>
+            </div>
+            <button id="btnAddDeviceTable" type="button" 
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors">
+                <i data-lucide="plus" class="w-3.5 h-3.5 text-primary"></i>
+                <span class="device-desktop-view inline">Add Device</span>
+            </button>
+        </div>
+
+        @if (devices.Count == 0)
+        {
+            <!-- Clean Empty State (When 0 devices registered) -->
+            <div id="deviceEmptyState" class="px-6 py-12 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-primary mx-auto flex items-center justify-center mb-3">
+                    <i data-lucide="monitor-speaker" class="w-7 h-7"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900">No connected devices</h3>
+                <p class="mt-1 text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">
+                    Install and run the lightweight <strong>FileAccessAgent</strong> on your PC to start accessing files remotely.
+                </p>
+                <div class="mt-5">
+                    <button id="btnAddDeviceEmpty" type="button" 
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors">
+                        <i data-lucide="link" class="w-4 h-4"></i>
+                        <span>Connect Your First PC</span>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Desktop / Tablet Table View (hidden on small mobile) -->
+            <div class="device-desktop-view overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/75 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                            <th class="py-3 px-5">Device Name</th>
+                            <th class="py-3 px-5">Status</th>
+                            <th class="py-3 px-5">Shared Folders</th>
+                            <th class="py-3 px-5">Last Seen</th>
+                            <th class="py-3 px-5 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deviceTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm">
+                        @foreach (var device in devices)
+                        {
+                            bool isOnline = device.status == "online";
+                            <tr data-device-guid="@device.device_guid.ToString().ToLower()" data-device-name="@device.device_name" class="hover:bg-slate-50/60 transition-colors">
+                                <td class="py-3.5 px-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="device-icon-box w-8 h-8 rounded-lg @(isOnline ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-100 text-slate-400 border border-slate-200") flex items-center justify-center transition-colors">
+                                            <i data-lucide="monitor" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <span class="font-bold text-slate-900">@device.device_name</span>
+                                            <span class="block text-[11px] text-slate-400 font-mono">@device.device_guid.ToString().Substring(0, 8)...</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-5">
+                                    @if (isOnline)
+                                    {
+                                        <span class="device-status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-sm">
+                                            <span class="relative flex h-2 w-2 mr-1.5">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                            </span>
+                                            Online
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="device-status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-sm">
+                                            <span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>
+                                            Offline
+                                        </span>
+                                    }
+                                </td>
+                                <td class="py-3.5 px-5">
+                                    <span class="inline-flex items-center gap-1 font-semibold text-slate-700">
+                                        <i data-lucide="folder" class="w-3.5 h-3.5 text-slate-400"></i>
+                                        @device.shared_folder_count @(device.shared_folder_count == 1 ? "folder" : "folders")
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-5 text-slate-500 font-medium device-last-seen">
+                                    @device.LastSeenFormatted
+                                </td>
+                                <td class="py-3.5 px-5 text-right">
+                                    @if (isOnline)
+                                    {
+                                        <a href="/Admin/DeviceFolders?deviceGuid=@device.device_guid" class="device-action-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all">
+                                            <span>Open</span>
+                                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" disabled title="Device is offline. Start FileAccessAgent to connect." class="device-action-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-400 border border-slate-200 text-xs font-semibold cursor-not-allowed transition-all opacity-80">
+                                            <span>Disconnected</span>
+                                            <i data-lucide="cloud-off" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View (block on mobile <640px) -->
+            <div id="deviceMobileCards" class="device-mobile-view divide-y divide-slate-100">
+                @foreach (var device in devices)
+                {
+                    bool isOnline = device.status == "online";
+                    <div data-device-guid="@device.device_guid.ToString().ToLower()" data-device-name="@device.device_name" class="device-mobile-card p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                    <i data-lucide="monitor" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-slate-900 text-sm">@device.device_name</span>
+                                    <span class="block text-[11px] text-slate-400 font-mono">@device.device_guid.ToString().Substring(0, 8)...</span>
+                                </div>
+                            </div>
+                            @if (isOnline)
+                            {
+                                <span class="device-status-badge inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                    <span class="relative flex h-1.5 w-1.5 mr-1.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                    </span>
+                                    Online
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="device-status-badge inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>
+                                    Offline
+                                </span>
+                            }
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+                            <span class="inline-flex items-center gap-1 font-medium">
+                                <i data-lucide="folder" class="w-3.5 h-3.5 text-slate-400"></i>
+                                @device.shared_folder_count @(device.shared_folder_count == 1 ? "Shared Folder" : "Shared Folders")
+                            </span>
+                            <span class="font-medium device-last-seen">@device.LastSeenFormatted</span>
+                        </div>
+
+                        @if (isOnline)
+                        {
+                            <a href="/Admin/DeviceFolders?deviceGuid=@device.device_guid" class="device-action-btn w-full py-2.5 rounded-lg bg-primary hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm text-center transition-all flex items-center justify-center gap-2">
+                                <span>Open Device</span>
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button type="button" disabled title="Device is offline. Start FileAccessAgent to connect." class="device-action-btn w-full py-2.5 rounded-lg bg-slate-100 text-slate-400 border border-slate-200 text-xs font-semibold cursor-not-allowed text-center transition-all flex items-center justify-center gap-2 opacity-80">
+                                <span>Device Disconnected</span>
+                                <i data-lucide="cloud-off" class="w-3.5 h-3.5"></i>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 4. Two-Column Split: Shared Folders + Recent Activity                     -->
+    <!-- ========================================================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Left: Shared Folders -->
+        <section class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
+                            <i data-lucide="folder-symlink" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900">Shared Folders</h3>
+                            <p class="text-xs text-slate-500">Accessible directories configured across your devices.</p>
+                        </div>
+                    </div>
+                    <a href="/Admin/DeviceFolders" class="text-xs font-semibold text-primary hover:underline">
+                        + Add Folder
+                    </a>
+                </div>
+
+                <div class="mt-4 space-y-3">
+                    @if (sharedFolders.Count == 0)
+                    {
+                        <div class="p-6 text-center">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-2">
+                                <i data-lucide="folder-plus" class="w-5 h-5"></i>
+                            </div>
+                            <p class="text-xs font-medium text-slate-600">No shared folders configured yet</p>
+                            <a href="/Admin/DeviceFolders" class="mt-1.5 inline-block text-xs font-semibold text-primary hover:underline">
+                                Configure your first folder &rarr;
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var folder in sharedFolders.Take(4))
+                        {
+                            <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-9 h-9 rounded-lg bg-emerald-50 text-primary flex items-center justify-center shrink-0">
+                                        <i data-lucide="folder" class="w-4 h-4"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="font-bold text-xs sm:text-sm text-slate-900 block truncate">@folder.folder_name</span>
+                                        <span class="block text-[11px] text-slate-400 truncate">Host: @folder.device_name &bull; <span class="font-mono">@folder.local_path</span></span>
+                                    </div>
+                                </div>
+                                <a href="/Admin/FileBrowser?folderGuid=@folder.folder_guid" class="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors shrink-0 ml-3">
+                                    Browse
+                                </a>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                <a href="/Admin/DeviceFolders" class="text-xs font-semibold text-primary inline-flex items-center gap-1 hover:underline">
+                    View All Folders (@sharedFolders.Count) <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+        </section>
+
+        <!-- Right: Recent Activity -->
+        <section class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-primary flex items-center justify-center">
+                            <i data-lucide="history" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900">Recent Activity</h3>
+                            <p class="text-xs text-slate-500">Live operational events from connected devices.</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Live
+                    </span>
+                </div>
+
+                <div id="recentActivityList" class="mt-4 space-y-3">
+                    @foreach (var act in recentActivities)
+                    {
+                        <div class="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                            <div class="w-8 h-8 rounded-lg @(act.BadgeColor == "emerald" ? "bg-emerald-50 text-primary" : "bg-slate-100 text-slate-500") flex items-center justify-center shrink-0 mt-0.5">
+                                <i data-lucide="@act.Icon" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                @if (!string.IsNullOrEmpty(act.LinkUrl))
+                                {
+                                    <a href="@act.LinkUrl" class="text-xs font-semibold text-slate-800 hover:text-primary leading-snug block truncate">
+                                        @act.Title
+                                    </a>
+                                }
+                                else
+                                {
+                                    <p class="text-xs font-semibold text-slate-800 leading-snug truncate">@act.Title</p>
+                                }
+                                <span class="text-[11px] text-slate-400 block truncate">@Html.Raw(act.Description) &bull; @act.TimeAgo</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                <a href="/Admin/DeviceFolders" class="text-xs font-semibold text-primary inline-flex items-center gap-1 hover:underline">
+                    Manage Devices & Folders <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- ========================================================================= -->
+<!-- 5. "CONNECT PC / ADD DEVICE" MODAL DIALOG                                 -->
+<!-- ========================================================================= -->
+<div id="modalAddDevice" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all">
+    <div class="relative w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-primary flex items-center justify-center">
+                    <i data-lucide="monitor-up" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 leading-none">Connect a PC</h3>
+                    <p class="text-xs text-slate-500 mt-1">Pair your local Windows computer</p>
+                </div>
+            </div>
+            <button id="btnClosePairingModal" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-5">
+            <!-- Pairing Code Canvas -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-5 text-center">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Your 6-Digit Pairing Code</span>
+                <div class="py-2">
+                    <span id="txtPairingCodeDisplay" class="text-3xl sm:text-4xl font-black font-mono tracking-widest text-slate-900 select-all">--- ---</span>
+                </div>
+                <p id="txtPairingTimer" class="text-xs font-semibold text-emerald-700 mt-1">Generating secure code...</p>
+
+                <!-- Action Toolbar -->
+                <div class="mt-4 flex items-center justify-center gap-2">
+                    <button id="btnCopyPairingCode" type="button" 
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-sm transition-colors">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        <span>Copy Code</span>
+                    </button>
+                    <button id="btnRefreshPairingCode" type="button" 
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-sm transition-colors">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        <span>New Code</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3 Simple Setup Steps -->
+            <div class="space-y-3">
+                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">How to connect:</h4>
+                <div class="space-y-2 text-xs text-slate-600">
+                    <div class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
+                        <span>Launch <strong>FileAccessAgent.exe</strong> on the Windows computer you want to access.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <span>When prompted, enter this 6-digit pairing code.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">3</span>
+                        <span>The Agent will securely register and appear <strong>Online</strong> on this dashboard immediately!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end">
+            <button id="btnCancelPairingModal" type="button" class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <!-- SignalR Client Scripts -->
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="/signalr/hubs"></script>
+
+    <!-- Dashboard Real-Time Manager Script -->
+    <script src="~/MyAppjs/Dashboard/dashboard.js?v=@DateTime.Now.Ticks"></script>
+    <script>
+        // @@ts-nocheck
+        $(document).ready(function () {
+            // REASON: Initialize real-time DeviceHub SignalR connection for current user
+            DashboardManager.init(@currentUserId);
+
+            // Re-render Lucide icons
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
+    </script>
+}

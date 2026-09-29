@@ -1,0 +1,9 @@
+{
+  "ServerUrl": "https://pcaccess.ourdemos.com",
+  "DeviceGuid": "00000000-0000-0000-0000-000000000000",
+  "DeviceName": "",
+  "DeviceToken": "",
+  "DriveLetter": "R:",
+  "DriveLabel": "Remote Drive",
+  "EnableRemoteDrive": true
+}
