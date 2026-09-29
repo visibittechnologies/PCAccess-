@@ -2,56 +2,56 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>GitRule - Complete Step-by-Step Git & GitHub Master Guide</title>
+<title>GitRule - Complete Advanced Git & GitHub Master Guide (Hindi)</title>
 <style>
-  @page { size: A4; margin: 15mm 14mm 15mm 14mm; }
+  @page { size: A4; margin: 14mm 13mm 14mm 13mm; }
   * { box-sizing: border-box; }
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     color: #1e293b;
-    line-height: 1.55;
-    font-size: 13px;
+    line-height: 1.5;
+    font-size: 12.5px;
     background: #fff;
     margin: 0; padding: 0;
   }
   .header-card {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #312e81 100%);
     color: #fff;
-    padding: 22px 26px;
+    padding: 20px 24px;
     border-radius: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     box-shadow: 0 4px 12px rgba(15,23,42,0.18);
   }
-  .header-card h1 { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
-  .header-card .subtitle { font-size: 13.5px; color: #c7d2fe; margin-bottom: 12px; }
-  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .header-card h1 { margin: 0 0 5px 0; font-size: 21px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-card .subtitle { font-size: 13px; color: #c7d2fe; margin-bottom: 10px; }
+  .badge-row { display: flex; gap: 7px; flex-wrap: wrap; }
   .badge {
     background: rgba(255,255,255,0.16);
-    padding: 3px 9px;
-    border-radius: 6px;
-    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 10.5px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
   h2 {
-    font-size: 16.5px;
+    font-size: 15.5px;
     color: #0f172a;
     border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 5px;
-    margin-top: 22px;
-    margin-bottom: 10px;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 8px;
     page-break-after: avoid;
   }
-  h3 { font-size: 14px; color: #1e3a8a; margin: 14px 0 6px 0; page-break-after: avoid; }
-  p { margin: 6px 0 10px 0; }
+  h3 { font-size: 13.5px; color: #1e3a8a; margin: 12px 0 5px 0; page-break-after: avoid; }
+  p { margin: 5px 0 8px 0; }
   .alert-box {
     background: #f0fdf4;
     border-left: 4px solid #16a34a;
-    padding: 10px 14px;
-    border-radius: 0 8px 8px 0;
-    margin: 12px 0;
-    font-size: 12.5px;
+    padding: 9px 13px;
+    border-radius: 0 7px 7px 0;
+    margin: 10px 0;
+    font-size: 12px;
   }
   .alert-box.info { background: #eff6ff; border-left-color: #2563eb; }
   .alert-box.warning { background: #fffbeb; border-left-color: #d97706; }
@@ -63,19 +63,19 @@
   code {
     background: #f1f5f9;
     color: #0f172a;
-    padding: 2px 6px;
+    padding: 1.5px 5px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 11.5px;
   }
   .cmd-block {
     background: #0f172a;
     color: #38bdf8;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin: 8px 0 12px 0;
+    padding: 10px 14px;
+    border-radius: 7px;
+    margin: 6px 0 10px 0;
     font-family: 'Consolas', monospace;
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 11.5px;
+    line-height: 1.45;
     overflow-x: auto;
   }
   .cmd-block .comment { color: #94a3b8; font-style: italic; }
@@ -85,12 +85,12 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    margin: 12px 0 16px 0;
-    font-size: 12px;
+    margin: 10px 0 14px 0;
+    font-size: 11.5px;
     page-break-inside: avoid;
   }
   th, td {
-    padding: 8px 10px;
+    padding: 7px 9px;
     border: 1px solid #cbd5e1;
     text-align: left;
     vertical-align: top;
@@ -104,22 +104,32 @@
   .page-break { page-break-before: always; }
   .step-num {
     display: inline-block;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     background: #2563eb;
     color: #fff;
     border-radius: 50%;
     text-align: center;
-    line-height: 22px;
-    font-size: 12px;
+    line-height: 20px;
+    font-size: 11px;
     font-weight: bold;
-    margin-right: 6px;
+    margin-right: 5px;
+  }
+  .conflict-box {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: #881337;
+    margin: 8px 0;
   }
   .footer {
-    margin-top: 24px;
+    margin-top: 20px;
     border-top: 1px solid #e2e8f0;
-    padding-top: 10px;
-    font-size: 11px;
+    padding-top: 8px;
+    font-size: 10.5px;
     color: #64748b;
     text-align: center;
   }
@@ -128,206 +138,286 @@
 <body>
 
 <div class="header-card">
-  <h1>Git & GitHub Full Manual Setup & Rules Guide (हिंदी / Hinglish)</h1>
-  <div class="subtitle">शुरुआत से अंत तक (Scratch to Remote Push) किसी भी प्रोजेक्ट को GitHub पर डालने का पक्का और सुरक्षित नियम</div>
+  <h1>Git & GitHub Complete Master SOP & Rules Guide (हिंदी / Hinglish)</h1>
+  <div class="subtitle">Push, Pull, Fetch, Branching, Merging, Stashing और Conflict Resolution के संपूर्ण प्रैक्टिकल नियम</div>
   <div class="badge-row">
-    <span class="badge">Master Git Rule</span>
-    <span class="badge">Terminal & CMD Ready</span>
+    <span class="badge">Push & Pull</span>
+    <span class="badge">Fetch vs Pull</span>
+    <span class="badge">Branch & Merge</span>
+    <span class="badge">Git Stash</span>
+    <span class="badge">Conflict Solve</span>
     <span class="badge">Multi-Account Safe</span>
-    <span class="badge">GitHub Desktop</span>
-    <span class="badge">Error Resolution</span>
   </div>
 </div>
 
-<h2>1. भूमिका (Introduction & Core Philosophy)</h2>
-<p>
-इस गाइड का उद्देश्य यह है कि अगली बार जब भी आप कोई नया या मौजूदा प्रोजेक्ट (जैसे <code>PCAccess</code>) पहली बार Git और GitHub पर डालना चाहें, तो आप बिना किसी परेशानी, बिना पासवर्ड एरर और बिना अकाउंट कन्फ्यूजन के <b>टर्मिनल / CMD या GitHub Desktop</b> से 100% खुद कर सकें।
-</p>
-
-<div class="alert-box info">
-  <b>💡 सबसे महत्वपूर्ण बात:</b> अगस्त 2021 से GitHub ने टर्मिनल में डायरेक्ट पासवर्ड (जैसे <code>awebworld*123#</code>) लेना बंद कर दिया है। Git अब <b>Browser Login (OAuth)</b> या <b>Personal Access Token (PAT)</b> से ही काम करता है।
-</div>
-
-<h2>2. स्टेजिंग से पहले: .gitignore की तैयारी (Most Critical Step)</h2>
-<p>
-किसी भी .NET / C# / Web प्रोजेक्ट को Git में डालने से पहले <code>.gitignore</code> फाइल बनाना जरूरी है, ताकि <b>bin, obj, packages, और .vs</b> जैसी भारी फाइलें गिट में न जाएँ और केवल ओरिजिनल कोड ही पुश हो।
-</p>
+<h2>1. शुरुआत से रिपॉजिटरी सेटअप (Initial Setup from Scratch)</h2>
+<p>जब भी कोई नया प्रोजेक्ट पहली बार Git में जोड़ना हो:</p>
 
 <div class="cmd-block">
-<span class="comment"># अपने प्रोजेक्ट रूट में .gitignore फाइल बनाएं और ये नियम रखें:</span>
-[Bb]in/
-[Oo]bj/
-packages/
-.vs/
-*.user
-*.suo
-*.bak
-</div>
-
-<h2>3. पूरा टर्मिनल प्रोसेस: Step-by-Step Command Flow</h2>
-
-<h3><span class="step-num">1</span> प्रोजेक्ट फोल्डर में जाएँ (Navigate to Project)</h3>
-<p>कमांड प्रॉम्प्ट (CMD) या PowerShell खोलें और अपने प्रोजेक्ट डायरेक्टरी में जाएँ:</p>
-<div class="cmd-block">
+<span class="comment"># 1. प्रोजेक्ट फोल्डर में जाएँ:</span>
 cd /d E:\Git\PCAccess
-</div>
 
-<h3><span class="step-num">2</span> गिट रिपॉजिटरी शुरू करें (Initialize Git)</h3>
-<div class="cmd-block">
+<span class="comment"># 2. गिट शुरू करें और लोकल पहचान सेट करें:</span>
 git init
-</div>
-<p>यह आपके प्रोजेक्ट में एक छुपी हुई <code>.git</code> डायरेक्टरी बना देगा।</p>
-
-<h3><span class="step-num">3</span> प्रोजेक्ट के लिए अपना नाम और ईमेल सेट करें (Local User Config)</h3>
-<p>अगर आपके PC पर पहले से कोई दूसरा गिट अकाउंट चल रहा है, तो <code>--global</code> इस्तेमाल न करें। केवल इस प्रोजेक्ट के लिए लोकल पहचान सेट करें:</p>
-<div class="cmd-block">
 git config user.name <span class="val">"Visibit Technologies"</span>
 git config user.email <span class="val">"visibittechnologies@gmail.com"</span>
-</div>
 
-<div class="page-break"></div>
-
-<h3><span class="step-num">4</span> मेन ब्रांच का नाम सेट करें (Set Default Branch to 'main')</h3>
-<div class="cmd-block">
+<span class="comment"># 3. .gitignore बनाएं (bin, obj, packages, .vs, *.bak छोड़ें)</span>
+<span class="comment"># 4. पहली बार स्टेज और कमिट करें:</span>
 git branch -M main
-</div>
-
-<h3><span class="step-num">5</span> कोड फाइल्स को स्टेज करें और कमिट करें (Stage & Commit)</h3>
-<div class="cmd-block">
-<span class="comment"># सभी फाइल्स को ट्रैक करें (.gitignore के अनुसार फालतू फाइल्स छोड़ दी जाएँगी):</span>
 git add .
+git commit -m <span class="val">"Initial commit: Project full codebase"</span>
 
-<span class="comment"># पहला कमिट बनाएं:</span>
-git commit -m <span class="val">"Initial commit: Project full codebase with documentation"</span>
-</div>
-
-<h3><span class="step-num">6</span> GitHub पर नई Repository बनाएं</h3>
-<ol>
-  <li>ब्राउज़र में जाएँ: <b>https://github.com/new</b></li>
-  <li>Repository name डालें (जैसे <code>PCAccess</code>)। <i>(ध्यान रखें: नाम में गलती से dash <code>-</code> न लगे)</i></li>
-  <li>Public या Private चुनें और <b>"Create repository"</b> पर क्लिक करें।</li>
-</ol>
-
-<h3><span class="step-num">7</span> Remote Origin लिंक करें (⭐ Golden Rule for Multi-Account)</h3>
-<p>
-अगर आपके कंप्यूटर पर पहले से कोई दूसरा गिट अकाउंट (जैसे <code>sonukr9525</code>) सेव है, तो डायरेक्ट लिंक करने पर <b>403 Permission Denied</b> आ सकता है। 
-<br><b>इसका 100% सही समाधान:</b> URL में अपने GitHub यूजरनेम का प्रीफिक्स लगाएँ:
-</p>
-
-<div class="cmd-block">
-<span class="comment"># फॉर्मेट: https://&lt;username&gt;@github.com/&lt;username&gt;/&lt;repo&gt;.git</span>
+<span class="comment"># 5. Remote Origin जोड़ें (Multi-account fix: URL में username प्रीफिक्स जरूर डालें):</span>
 git remote add origin https://visibittechnologies@github.com/visibittechnologies/PCAccess-.git
-</div>
-
-<p>अगर पहले से गलत remote जुड़ गया हो, तो उसे इस कमांड से बदलें:</p>
-<div class="cmd-block">
-git remote set-url origin https://visibittechnologies@github.com/visibittechnologies/PCAccess-.git
-</div>
-
-<h3><span class="step-num">8</span> गिटहब पर कोड पुश करें (Push to Remote)</h3>
-<div class="cmd-block">
 git push -u origin main
 </div>
 
-<div class="alert-box info">
-  <b>स्क्रीन पर क्या होगा:</b> पहली बार यह कमांड चलाने पर Git Credential Manager का ब्राउज़र पॉपअप खुलेगा। चूँकि आप ब्राउज़र में पहले से लॉगिन हैं, बस <b>"Authorize"</b> पर क्लिक करें। आपका कोड 100% सफलतापूर्वक पुश हो जाएगा!
-</div>
+<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;">
 
-<h2>4. मुख्य समस्याएं और उनके 1-मिनट समाधान (Troubleshooting Matrix)</h2>
+<h2>2. Fetch vs Pull के नियम (Deep Understanding)</h2>
+<p>अक्सर डेवलपर्स <code>fetch</code> और <code>pull</code> में भ्रमित होते हैं। दोनों का अंतर समझना सुरक्षित काम के लिए अनिवार्य है:</p>
 
 <table>
   <thead>
     <tr>
-      <th style="width: 28%;">समस्या / एरर</th>
-      <th style="width: 32%;">कारण</th>
-      <th style="width: 40%;">सटीक समाधान (Solution)</th>
+      <th style="width: 20%;">कमांड</th>
+      <th style="width: 45%;">यह क्या करता है?</th>
+      <th style="width: 35%;">कब इस्तेमाल करें?</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><b>remote: Repository not found</b></td>
-      <td>रिपॉजिटरी अभी GitHub पर नहीं बनी है या नाम में स्पेलिंग मिस्टेक है (जैसे <code>PCAccess</code> vs <code>PCAccess-</code>)।</td>
-      <td>ब्राउज़र में exact URL चेक करें और कमांड चलाएं:<br><code>git remote set-url origin &lt;correct_url&gt;</code></td>
+      <td><code>git fetch origin</code></td>
+      <td>गिटहब से सभी नई ब्रांचेस और कमिट्स की जानकारी डाउनलोड करता है, लेकिन <b>लोकल फाइलों में कोई बदलाव नहीं करता</b>।</td>
+      <td>जब आप सुरक्षित रहकर देखना चाहते हैं कि रिमोट पर दूसरों ने क्या काम किया है।</td>
     </tr>
     <tr>
-      <td><b>Permission denied to &lt;old_user&gt; (HTTP 403)</b></td>
-      <td>Windows Credential Manager में किसी दूसरे अकाउंट के क्रेडेंशियल्स कैश्ड हैं।</td>
-      <td>Remote URL में यूजरनेम लगा दें:<br><code>https://visibittechnologies@github.com/...</code></td>
+      <td><code>git pull origin main</code></td>
+      <td><code>fetch</code> + <code>merge</code> का कॉम्बिनेशन है। गिटहब से नया कोड लाता है और तुरंत <b>लोकल कोड में मिला देता है</b>।</td>
+      <td>जब आप अपने कोड को रिमोट के साथ तुरंत अपडेट करना चाहते हैं।</td>
     </tr>
     <tr>
-      <td><b>Support for password authentication was removed</b></td>
-      <td>टर्मिनल में अकाउंट का मुख्य पासवर्ड डाला गया है।</td>
-      <td>ब्राउज़र ऑथराइज़ेशन पॉपअप का उपयोग करें या <b>Personal Access Token (PAT)</b> का इस्तेमाल करें।</td>
-    </tr>
-    <tr>
-      <td><b>fatal: not a git repository</b></td>
-      <td>उस फोल्डर में Git इनिशियलाइज़ नहीं किया गया है।</td>
-      <td>प्रोजेक्ट फोल्डर में जाकर <code>git init</code> चलाएं।</td>
+      <td><code>git pull --rebase origin main</code></td>
+      <td>गिटहब से नया कोड लाता है और आपके लोकल कमिट्स को उसके ऊपर साफ तरीके से रख देता है (बगैर फालतू Merge Commit बनाए)।</td>
+      <td><b>(Recommended)</b> साफ गिट हिस्ट्री बनाए रखने के लिए।</td>
     </tr>
   </tbody>
 </table>
+
+<div class="cmd-block">
+<span class="comment"># सुरक्षित वर्कफ़्लो: पहले Fetch करके अंतर देखें, फिर Merge करें:</span>
+git fetch origin
+git log HEAD..origin/main --oneline    <span class="comment"># देखें कि क्या नया आया है</span>
+git merge origin/main                 <span class="comment"># अब लोकल में मिलाएँ</span>
+</div>
 
 <div class="page-break"></div>
 
-<h2>5. GitHub Desktop में उपयोग करने के नियम</h2>
+<h2>3. Push के सभी प्रैक्टिकल नियम (Push Rules)</h2>
 
-<h3>नियम A: इसी कंप्यूटर पर (जहाँ कोड पहले से मौजूद है)</h3>
-<ol>
-  <li>GitHub Desktop खोलें।</li>
-  <li>मेनू बार में जाएँ: <b>File</b> ➔ <b>Add Local Repository...</b> (शॉर्टकट: <code>Ctrl + O</code>)</li>
-  <li>लोकल पाथ चुनें: <code>E:\Git\PCAccess</code></li>
-  <li><b>Add Repository</b> पर क्लिक करें।</li>
-</ol>
-<div class="alert-box warning">
-  <b>चेतावनी:</b> इसी कंप्यूटर पर "Clone" न करें, नहीं तो वह <i>"Folder already exists"</i> का एरर देगा।
+<h3>नियम 1: पहली बार पुश (First Push with Upstream)</h3>
+<div class="cmd-block">
+git push -u origin main
+</div>
+<p><code>-u</code> (या <code>--set-upstream</code>) लगाने से लोकल ब्रांच रिमोट की ब्रांच से लिंक हो जाती है। इसके बाद आपको सिर्फ <code>git push</code> लिखना होगा।</p>
+
+<h3>नियम 2: सामान्य पुश (Daily Routine)</h3>
+<div class="cmd-block">
+git add .
+git commit -m <span class="val">"Add: User login drive mounting feature"</span>
+git push
 </div>
 
-<h3>नियम B: नए कंप्यूटर पर या टीम मेंबर के सिस्टम पर</h3>
+<h3>नियम 3: किसी विशेष नई ब्रांच को पुश करना</h3>
+<div class="cmd-block">
+git push -u origin feature-reporting
+</div>
+
+<h3>नियम 4: Push Reject होने पर क्या करें? (Never Force Push Blindly)</h3>
+<p>अगर गिटहब पर नया कोड है जो आपके पास नहीं है, तो Git कहेगा: <i>"Updates were rejected because the remote contains work that you do not have locally."</i></p>
+<div class="alert-box warning">
+  <b>❌ कभी न करें:</b> <code>git push -f</code> (Force push) कभी न चलाएं! इससे दूसरों का कोड हमेशा के लिए डिलीट हो सकता है।
+  <br><b>✅ सही तरीका:</b> पहले <code>git pull --rebase origin main</code> चलाएं, फिर <code>git push</code> करें।
+</div>
+
+<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;">
+
+<h2>4. Branching & Merging (ब्रांच बनाने और मिलाने के नियम)</h2>
+<p>किसी भी नए फीचर या बग-फिक्स पर काम करते समय <code>main</code> ब्रांच में डायरेक्ट काम करने के बजाय नई ब्रांच बनाएं:</p>
+
+<h3>Step A: नई ब्रांच बनाना और स्विच करना</h3>
+<div class="cmd-block">
+<span class="comment"># नई ब्रांच बनाएं और तुरंत उसमें चले जाएं:</span>
+git checkout -b feature-user-agent
+<span class="comment"># (या आधुनिक गिट में: git switch -c feature-user-agent)</span>
+</div>
+
+<h3>Step B: ब्रांच में काम करके कमिट करना</h3>
+<div class="cmd-block">
+git add .
+git commit -m <span class="val">"Implement UserLoginAgent status check command"</span>
+</div>
+
+<h3>Step C: फीचर ब्रांच को Main में मिलाना (Merge Flow)</h3>
+<div class="cmd-block">
+<span class="comment"># 1. मुख्य ब्रांच (main) पर वापस आएं:</span>
+git checkout main
+
+<span class="comment"># 2. सुनिश्चित करें कि main सबसे अपडेटेड है:</span>
+git pull origin main
+
+<span class="comment"># 3. फीचर ब्रांच को main में मर्ज करें:</span>
+git merge feature-user-agent
+
+<span class="comment"># 4. मर्ज किया हुआ कोड GitHub पर भेजें:</span>
+git push origin main
+</div>
+
+<h3>Step D: काम पूरा होने के बाद ब्रांच डिलीट करना</h3>
+<div class="cmd-block">
+<span class="comment"># लोकल ब्रांच डिलीट करें:</span>
+git branch -d feature-user-agent
+<span class="comment"># गिटहब (रिमोट) से भी ब्रांच डिलीट करें:</span>
+git push origin --delete feature-user-agent
+</div>
+
+<div class="page-break"></div>
+
+<h2>5. Git Stash: बिना कमिट किए काम को सुरक्षित छिपाना</h2>
+<p>
+<b>सिचुएशन:</b> आप किसी फाइल में काम कर रहे हैं (काम अभी अधूरा है), और अचानक आपको <code>git pull</code> करना है या दूसरी ब्रांच पर स्विच करना है। Git आपको रोक देगा कहेगा <i>"Please commit or stash your changes"</i>।
+</p>
+
+<h3>Stash की जादुई कमांड्स:</h3>
+<div class="cmd-block">
+<span class="comment"># 1. अपने अधूरे काम को सुरक्षित अलमारी (Stash) में रख दें:</span>
+git stash save <span class="val">"Work in progress: UI styling changes"</span>
+
+<span class="comment"># अब आपकी वर्किंग डायरेक्टरी बिल्कुल साफ हो गई है! अब आप pull या switch कर सकते हैं:</span>
+git pull origin main
+
+<span class="comment"># 2. अपना छिपाया हुआ अधूरा काम वापस निकालें:</span>
+git stash pop
+
+<span class="comment"># 3. सभी सेव किए गए stashes की लिस्ट देखना:</span>
+git stash list
+
+<span class="comment"># 4. अगर अब उस छिपे हुए काम की जरूरत न हो, तो डिलीट करें:</span>
+git stash drop
+</div>
+
+<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;">
+
+<h2>6. Merge Conflicts को हल करने के नियम (How to Solve Conflicts)</h2>
+<p>
+<b>Conflict कब आता है?</b> जब दो लोगों ने एक ही फाइल की एक ही लाइन पर अलग-अलग बदलाव किए हों, और Git खुद फैसला न ले पाए कि किसका कोड रखना है।
+</p>
+
+<h3>Conflict दिखने पर फाइल कैसी दिखती है?</h3>
+<div class="conflict-box">
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD (आपका लोकल कोड)<br>
+string apiUrl = "https://pcaccess.ourdemos.com";<br>
+=======<br>
+string apiUrl = "https://api.pcaccess.com";<br>
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main (दूसरों का रिमोट कोड)
+</div>
+
+<h3>Conflict सॉल्व करने के 4 आसान स्टेप्स:</h3>
 <ol>
-  <li>GitHub Desktop खोलें और अपने अकाउंट से साइन-इन करें।</li>
-  <li><b>File</b> ➔ <b>Clone Repository...</b> पर क्लिक करें।</li>
-  <li>लिस्ट में से <code>PCAccess-</code> चुनें और लोकल पाथ देकर <b>Clone</b> दबाएँ। पूरा प्रोजेक्ट डाउनलोड हो जाएगा।</li>
+  <li>
+    <b>फाइल को एडिटर (VS / VS Code) में खोलें:</b>
+    <br>आपको <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, और <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> मार्कर्स दिखेंगे।
+  </li>
+  <li>
+    <b>निर्णय लें:</b>
+    <br>आपको जो सही कोड रखना है उसे रखें, दूसरा हटा दें, और ये तीनों मार्कर्स (<code>&lt;&lt;&lt;</code>, <code>===</code>, <code>&gt;&gt;&gt;</code>) <b>डिलीट कर दें</b>।
+  </li>
+  <li>
+    <b>सॉल्व करने के बाद स्टेज और कमिट करें:</b>
+    <div class="cmd-block">
+git add .
+git commit -m <span class="val">"Fix: Resolved merge conflict in AgentConfig"</span>
+git push
+    </div>
+  </li>
+  <li>
+    <b>अगर गलती हो जाए और सब कुछ पहले जैसा करना हो (Abort):</b>
+    <div class="cmd-block">
+git merge --abort
+<span class="comment"># (अगर rebase के दौरान conflict आया हो):</span>
+git rebase --abort
+    </div>
+  </li>
 </ol>
 
-<h2>6. भविष्य में रोज़मर्रा काम आने वाली Git कमांड्स (Daily Cheat Sheet)</h2>
+<div class="page-break"></div>
+
+<h2>7. GitHub Desktop में इन सभी ऑपरेशन्स का शॉर्टकट</h2>
 
 <table>
   <thead>
     <tr>
-      <th style="width: 35%;">काम / ऑपरेशन</th>
-      <th style="width: 65%;">कमांड</th>
+      <th style="width: 25%;">ऑपरेशन</th>
+      <th style="width: 75%;">GitHub Desktop में कैसे करें?</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>बदलावों की स्थिति देखना</td>
-      <td><code>git status</code></td>
+      <td><b>Fetch / Pull</b></td>
+      <td>ऊपर दाएँ कोने में <b>"Fetch origin"</b> बटन दबाएँ। अगर नए कमिट्स होंगे, तो वही बटन <b>"Pull origin"</b> बन जाएगा। बस क्लिक करें।</td>
     </tr>
     <tr>
-      <td>सभी नई या बदली हुई फाइलों को जोड़ना</td>
-      <td><code>git add .</code></td>
+      <td><b>Push</b></td>
+      <td>कमिट करने के बाद ऊपर बटन <b>"Push origin"</b> बन जाएगा। एक क्लिक में कोड गिटहब पर चला जाएगा।</td>
     </tr>
     <tr>
-      <td>नया कमिट रिकॉर्ड करना</td>
-      <td><code>git commit -m "Update: Added new features or bug fixes"</code></td>
+      <td><b>Branch बनाना</b></td>
+      <td>ऊपर मेनू में <b>"Current branch"</b> पर क्लिक करें ➔ <b>"New branch"</b> दबाएँ ➔ नाम डालें और <b>"Create branch"</b> करें।</td>
     </tr>
     <tr>
-      <td>GitHub पर अपडेट भेजना</td>
-      <td><code>git push</code></td>
+      <td><b>Branch Merge</b></td>
+      <td>Branch मेनू ➔ <b>"Merge into current branch..."</b> ➔ जिस ब्रांच को मिलाना है उसे चुनकर <b>"Create a merge commit"</b> दबाएँ।</td>
     </tr>
     <tr>
-      <td>GitHub से नवीनतम कोड खींचना</td>
-      <td><code>git pull origin main</code></td>
+      <td><b>Stash Changes</b></td>
+      <td>अगर बदलाव कमिट नहीं किए और ब्रांच बदलनी है, तो GitHub Desktop खुद पूछेगा: <i>"Leave my changes on [branch]"</i> या <i>"Bring my changes to [new branch]"</i>। यह ऑटो-स्टैश कर देता है।</td>
     </tr>
     <tr>
-      <td>कमिट हिस्ट्री देखना</td>
-      <td><code>git log --oneline -n 5</code></td>
+      <td><b>Conflict Resolve</b></td>
+      <td>GitHub Desktop फाइल्स की लिस्ट दिखाएगा और बगल में <b>"Open in Visual Studio"</b> का बटन देगा। सॉल्व करके सेव करने पर हरा टिक बन जाएगा।</td>
     </tr>
   </tbody>
 </table>
 
+<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;">
+
+<h2>8. अल्टीमेट Git कमांड्स मास्टर समरी (Golden Cheat Sheet)</h2>
+
+<div class="cmd-block">
+<span class="comment"># 1. स्टेटस और हिस्ट्री</span>
+git status                              <span class="comment"># फाइल्स की वर्तमान स्थिति</span>
+git log --oneline -n 5                 <span class="comment"># अंतिम 5 कमिट्स की लिस्ट</span>
+
+<span class="comment"># 2. स्टैशिंग (अधूरा काम छिपाना)</span>
+git stash                              <span class="comment"># काम छिपाएं</span>
+git stash pop                          <span class="comment"># काम वापस निकालें</span>
+
+<span class="comment"># 3. पुल और फेच</span>
+git fetch origin                       <span class="comment"># रिमोट अपडेट सिर्फ चेक करें</span>
+git pull --rebase origin main          <span class="comment"># रिमोट अपडेट लेकर कोड साफ़ रखें</span>
+
+<span class="comment"># 4. ब्रांचिंग</span>
+git checkout -b new-feature            <span class="comment"># नई ब्रांच बनाएं</span>
+git checkout main                      <span class="comment"># मेन ब्रांच पर वापस आएं</span>
+git merge new-feature                  <span class="comment"># फीचर को मेन में मिलाएँ</span>
+
+<span class="comment"># 5. पुशिंग</span>
+git push origin main                   <span class="comment"># गिटहब पर भेजना</span>
+</div>
+
 <div class="footer">
-  PCAccess Project • Git & GitHub Master Guide • Visibit Technologies • 2026
+  PCAccess Project • Advanced Git & GitHub Master Guide • Visibit Technologies • 2026
 </div>
 
 </body>

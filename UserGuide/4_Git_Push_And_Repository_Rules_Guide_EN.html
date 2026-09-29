@@ -2,56 +2,56 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>GitRule - Complete Step-by-Step Git & GitHub Master Guide (English)</title>
+<title>GitRule - Complete Advanced Git & GitHub Master Guide (English)</title>
 <style>
-  @page { size: A4; margin: 15mm 14mm 15mm 14mm; }
+  @page { size: A4; margin: 14mm 13mm 14mm 13mm; }
   * { box-sizing: border-box; }
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     color: #1e293b;
-    line-height: 1.55;
-    font-size: 13px;
+    line-height: 1.5;
+    font-size: 12.5px;
     background: #fff;
     margin: 0; padding: 0;
   }
   .header-card {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #312e81 100%);
     color: #fff;
-    padding: 22px 26px;
+    padding: 20px 24px;
     border-radius: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     box-shadow: 0 4px 12px rgba(15,23,42,0.18);
   }
-  .header-card h1 { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
-  .header-card .subtitle { font-size: 13.5px; color: #c7d2fe; margin-bottom: 12px; }
-  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .header-card h1 { margin: 0 0 5px 0; font-size: 21px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-card .subtitle { font-size: 13px; color: #c7d2fe; margin-bottom: 10px; }
+  .badge-row { display: flex; gap: 7px; flex-wrap: wrap; }
   .badge {
     background: rgba(255,255,255,0.16);
-    padding: 3px 9px;
-    border-radius: 6px;
-    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 10.5px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
   h2 {
-    font-size: 16.5px;
+    font-size: 15.5px;
     color: #0f172a;
     border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 5px;
-    margin-top: 22px;
-    margin-bottom: 10px;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 8px;
     page-break-after: avoid;
   }
-  h3 { font-size: 14px; color: #1e3a8a; margin: 14px 0 6px 0; page-break-after: avoid; }
-  p { margin: 6px 0 10px 0; }
+  h3 { font-size: 13.5px; color: #1e3a8a; margin: 12px 0 5px 0; page-break-after: avoid; }
+  p { margin: 5px 0 8px 0; }
   .alert-box {
     background: #f0fdf4;
     border-left: 4px solid #16a34a;
-    padding: 10px 14px;
-    border-radius: 0 8px 8px 0;
-    margin: 12px 0;
-    font-size: 12.5px;
+    padding: 9px 13px;
+    border-radius: 0 7px 7px 0;
+    margin: 10px 0;
+    font-size: 12px;
   }
   .alert-box.info { background: #eff6ff; border-left-color: #2563eb; }
   .alert-box.warning { background: #fffbeb; border-left-color: #d97706; }
@@ -63,19 +63,19 @@
   code {
     background: #f1f5f9;
     color: #0f172a;
-    padding: 2px 6px;
+    padding: 1.5px 5px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 11.5px;
   }
   .cmd-block {
     background: #0f172a;
     color: #38bdf8;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin: 8px 0 12px 0;
+    padding: 10px 14px;
+    border-radius: 7px;
+    margin: 6px 0 10px 0;
     font-family: 'Consolas', monospace;
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 11.5px;
+    line-height: 1.45;
     overflow-x: auto;
   }
   .cmd-block .comment { color: #94a3b8; font-style: italic; }
@@ -85,12 +85,12 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    margin: 12px 0 16px 0;
-    font-size: 12px;
+    margin: 10px 0 14px 0;
+    font-size: 11.5px;
     page-break-inside: avoid;
   }
   th, td {
-    padding: 8px 10px;
+    padding: 7px 9px;
     border: 1px solid #cbd5e1;
     text-align: left;
     vertical-align: top;
@@ -104,22 +104,32 @@
   .page-break { page-break-before: always; }
   .step-num {
     display: inline-block;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     background: #2563eb;
     color: #fff;
     border-radius: 50%;
     text-align: center;
-    line-height: 22px;
-    font-size: 12px;
+    line-height: 20px;
+    font-size: 11px;
     font-weight: bold;
-    margin-right: 6px;
+    margin-right: 5px;
+  }
+  .conflict-box {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: #881337;
+    margin: 8px 0;
   }
   .footer {
-    margin-top: 24px;
+    margin-top: 20px;
     border-top: 1px solid #e2e8f0;
-    padding-top: 10px;
-    font-size: 11px;
+    padding-top: 8px;
+    font-size: 10.5px;
     color: #64748b;
     text-align: center;
   }
@@ -128,207 +138,286 @@
 <body>
 
 <div class="header-card">
-  <h1>Git & GitHub Full Manual Setup & Rules Guide (English)</h1>
-  <div class="subtitle">Complete Standard Operating Procedure (SOP) to Initialize, Configure, and Push Any Project to GitHub</div>
+  <h1>Git & GitHub Complete Master SOP & Rules Guide (English)</h1>
+  <div class="subtitle">Comprehensive Operating Rules for Push, Pull, Fetch, Branching, Merging, Stashing, and Conflict Resolution</div>
   <div class="badge-row">
-    <span class="badge">Master Git Rule</span>
-    <span class="badge">Terminal & CMD Ready</span>
+    <span class="badge">Push & Pull</span>
+    <span class="badge">Fetch vs Pull</span>
+    <span class="badge">Branch & Merge</span>
+    <span class="badge">Git Stash</span>
+    <span class="badge">Conflict Solve</span>
     <span class="badge">Multi-Account Safe</span>
-    <span class="badge">GitHub Desktop</span>
-    <span class="badge">Error Resolution</span>
   </div>
 </div>
 
-<h2>1. Introduction & Security Philosophy</h2>
-<p>
-This document establishes the official SOP for version controlling and publishing any software solution (such as <code>PCAccess</code>) to GitHub from scratch. Following these exact steps guarantees safe initialization, zero credentials leakage, proper exclusion of build artifacts, and smooth pushing via Command Prompt, PowerShell, or GitHub Desktop.
-</p>
-
-<div class="alert-box info">
-  <b>💡 Security Authentication Rule:</b> Since August 2021, GitHub permanently deprecated direct password authentication for Git operations. All pushes require either <b>Browser OAuth (Git Credential Manager)</b> or a <b>Personal Access Token (PAT)</b>.
-</div>
-
-<h2>2. Pre-Staging: .gitignore Architecture (Mandatory First Step)</h2>
-<p>
-Before staging any .NET / Visual Studio solution into Git, a robust <code>.gitignore</code> must exist at the workspace root to prevent tracking large binary builds, caches, user-specific settings, and temporary files.
-</p>
+<h2>1. Repository Initialization & Initial Push</h2>
+<p>Standard sequence to initialize and publish any software project (such as <code>PCAccess</code>) to GitHub from scratch:</p>
 
 <div class="cmd-block">
-<span class="comment"># Essential .gitignore rules for Visual Studio solutions:</span>
-[Bb]in/
-[Oo]bj/
-packages/
-.vs/
-*.user
-*.suo
-*.bak
-</div>
-
-<h2>3. End-to-End Command Flow (Terminal / CMD / PowerShell)</h2>
-
-<h3><span class="step-num">1</span> Navigate to the Project Root</h3>
-<p>Open Command Prompt or PowerShell and switch to the repository folder:</p>
-<div class="cmd-block">
+<span class="comment"># 1. Switch to the project directory:</span>
 cd /d E:\Git\PCAccess
-</div>
 
-<h3><span class="step-num">2</span> Initialize Git Repository</h3>
-<div class="cmd-block">
+<span class="comment"># 2. Initialize local repository and set isolated credentials:</span>
 git init
-</div>
-<p>This creates the hidden <code>.git/</code> directory holding the repository database and tracking metadata.</p>
-
-<h3><span class="step-num">3</span> Configure Project-Specific Identity (Local Isolation)</h3>
-<p>Avoid changing the workstation's global Git profile. Always assign the company / client identity locally to the repo:</p>
-<div class="cmd-block">
 git config user.name <span class="val">"Visibit Technologies"</span>
 git config user.email <span class="val">"visibittechnologies@gmail.com"</span>
-</div>
 
-<div class="page-break"></div>
-
-<h3><span class="step-num">4</span> Standardize the Default Branch to 'main'</h3>
-<div class="cmd-block">
+<span class="comment"># 3. Create .gitignore (ignore bin/, obj/, packages/, .vs/, *.bak)</span>
+<span class="comment"># 4. Stage and create initial commit:</span>
 git branch -M main
-</div>
-
-<h3><span class="step-num">5</span> Stage and Commit All Solution Files</h3>
-<div class="cmd-block">
-<span class="comment"># Stage all tracked and new files (excluding those in .gitignore):</span>
 git add .
-
-<span class="comment"># Create the snapshot with a meaningful message:</span>
 git commit -m <span class="val">"Initial commit: Project full codebase with documentation"</span>
-</div>
 
-<h3><span class="step-num">6</span> Create Repository on GitHub</h3>
-<ol>
-  <li>Navigate to: <b>https://github.com/new</b> in your web browser.</li>
-  <li>Enter the Repository Name (e.g., <code>PCAccess-</code> or <code>PCAccess</code>). <i>(Notice exact spelling and trailing characters)</i>.</li>
-  <li>Choose Public or Private, leave "Add README" unchecked, and click <b>"Create repository"</b>.</li>
-</ol>
-
-<h3><span class="step-num">7</span> Link Remote Origin (⭐ The Multi-Account Golden Rule)</h3>
-<p>
-If Windows Credential Manager has another GitHub account cached (e.g., a personal developer account), a standard remote link will fail with <b>HTTP 403 Forbidden</b>. 
-<br><b>The Proven Resolution:</b> Explicitly prefix the target GitHub username in the remote URL:
-</p>
-
-<div class="cmd-block">
-<span class="comment"># Format: https://&lt;username&gt;@github.com/&lt;username&gt;/&lt;repo&gt;.git</span>
+<span class="comment"># 5. Link Remote Origin (Multi-Account Fix: include username prefix in the URL):</span>
 git remote add origin https://visibittechnologies@github.com/visibittechnologies/PCAccess-.git
-</div>
-
-<p>To update an existing remote URL:</p>
-<div class="cmd-block">
-git remote set-url origin https://visibittechnologies@github.com/visibittechnologies/PCAccess-.git
-</div>
-
-<h3><span class="step-num">8</span> Push to GitHub Remote</h3>
-<div class="cmd-block">
 git push -u origin main
 </div>
 
-<div class="alert-box info">
-  <b>What to expect:</b> Git Credential Manager will invoke a browser window. If you are already signed into GitHub as <code>visibittechnologies</code>, simply click the green <b>"Authorize"</b> button. Your entire codebase will push cleanly.
-</div>
+<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;">
 
-<h2>4. Troubleshooting Matrix (Common Errors & Solutions)</h2>
+<h2>2. Fetch vs Pull: Core Differences & Operating Rules</h2>
+<p>Understanding the distinction between <code>fetch</code> and <code>pull</code> is essential for safe team collaboration:</p>
 
 <table>
   <thead>
     <tr>
-      <th style="width: 28%;">Error Message</th>
-      <th style="width: 32%;">Root Cause</th>
-      <th style="width: 40%;">Exact Solution</th>
+      <th style="width: 20%;">Command</th>
+      <th style="width: 45%;">What it does</th>
+      <th style="width: 35%;">When to use</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><b>remote: Repository not found</b></td>
-      <td>Repository not created yet on GitHub, or character mismatch (e.g. <code>PCAccess</code> vs <code>PCAccess-</code>).</td>
-      <td>Verify browser URL and re-point remote:<br><code>git remote set-url origin &lt;exact_url&gt;</code></td>
+      <td><code>git fetch origin</code></td>
+      <td>Downloads all new commits, tags, and branches from GitHub into local tracking branches without modifying your working files.</td>
+      <td>When you want to inspect what coworkers have pushed before incorporating changes.</td>
     </tr>
     <tr>
-      <td><b>Permission denied to &lt;user&gt; (HTTP 403)</b></td>
-      <td>Windows cached credentials for another account.</td>
-      <td>Inject target username into URL:<br><code>https://visibittechnologies@github.com/...</code></td>
+      <td><code>git pull origin main</code></td>
+      <td>Executes <code>git fetch</code> followed immediately by <code>git merge</code>. Updates your local files with remote changes.</td>
+      <td>When you are ready to update your local working branch immediately.</td>
     </tr>
     <tr>
-      <td><b>Password authentication was removed</b></td>
-      <td>Account password was entered into terminal.</td>
-      <td>Use browser OAuth prompt or Personal Access Token (PAT) with <code>repo</code> scope.</td>
-    </tr>
-    <tr>
-      <td><b>fatal: not a git repository</b></td>
-      <td>Command run in directory without Git initialized.</td>
-      <td>Run <code>git init</code> in the project directory.</td>
+      <td><code>git pull --rebase origin main</code></td>
+      <td>Fetches remote commits and applies your local unpushed commits on top of the remote tip.</td>
+      <td><b>(Best Practice)</b> Prevents unnecessary merge commits and maintains a linear commit history.</td>
     </tr>
   </tbody>
 </table>
+
+<div class="cmd-block">
+<span class="comment"># Safe inspection workflow before merging:</span>
+git fetch origin
+git log HEAD..origin/main --oneline    <span class="comment"># Review incoming remote commits</span>
+git merge origin/main                 <span class="comment"># Safely merge into current branch</span>
+</div>
 
 <div class="page-break"></div>
 
-<h2>5. GitHub Desktop Integration Rules</h2>
+<h2>3. Push Operations & Safety Guardrails</h2>
 
-<h3>Rule A: On This Same PC (Where Code Already Exists)</h3>
-<ol>
-  <li>Launch GitHub Desktop.</li>
-  <li>Go to top menu: <b>File</b> ➔ <b>Add Local Repository...</b> (Shortcut: <code>Ctrl + O</code>).</li>
-  <li>Select directory: <code>E:\Git\PCAccess</code>.</li>
-  <li>Click <b>Add Repository</b>.</li>
-</ol>
-<div class="alert-box warning">
-  <b>Important:</b> Never select "Clone" for this directory on this PC, as it will throw <i>"Folder already exists"</i>.
+<h3>Rule 1: Initial Push with Upstream Tracking</h3>
+<div class="cmd-block">
+git push -u origin main
+</div>
+<p>The <code>-u</code> flag binds local <code>main</code> to remote <code>origin/main</code>. For subsequent pushes on this branch, you only need to type <code>git push</code>.</p>
+
+<h3>Rule 2: Daily Update Push</h3>
+<div class="cmd-block">
+git add .
+git commit -m <span class="val">"Feature: Add remote drive reconnect handler"</span>
+git push
 </div>
 
-<h3>Rule B: On a Fresh PC or for Team Members</h3>
+<h3>Rule 3: Pushing a New Feature Branch</h3>
+<div class="cmd-block">
+git push -u origin feature-user-agent
+</div>
+
+<h3>Rule 4: Handling Push Rejection (Never Blind Force Push)</h3>
+<p>If another teammate committed to GitHub before your push, Git will reject your push with <i>"Updates were rejected because the remote contains work that you do not have locally."</i></p>
+<div class="alert-box warning">
+  <b>❌ Forbidden:</b> Never run <code>git push -f</code> (Force Push) on shared branches, as it destroys remote commit history.
+  <br><b>✅ Proper Fix:</b> Run <code>git pull --rebase origin main</code>, resolve any conflicts, and then run <code>git push</code>.
+</div>
+
+<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;">
+
+<h2>4. Branching & Merging (Complete Workflow)</h2>
+<p>Always isolate new features, bug fixes, or experiments into dedicated branches rather than committing directly onto <code>main</code>.</p>
+
+<h3>Step A: Create and Switch to a New Branch</h3>
+<div class="cmd-block">
+<span class="comment"># Create and immediately checkout new branch:</span>
+git checkout -b feature-user-agent
+<span class="comment"># (Modern syntax: git switch -c feature-user-agent)</span>
+</div>
+
+<h3>Step B: Make Changes and Commit</h3>
+<div class="cmd-block">
+git add .
+git commit -m <span class="val">"Add drive letter validation logic"</span>
+</div>
+
+<h3>Step C: Merge Feature Branch into Main</h3>
+<div class="cmd-block">
+<span class="comment"># 1. Switch back to main branch:</span>
+git checkout main
+
+<span class="comment"># 2. Pull the latest remote main:</span>
+git pull origin main
+
+<span class="comment"># 3. Merge feature branch into main:</span>
+git merge feature-user-agent
+
+<span class="comment"># 4. Push updated main to GitHub:</span>
+git push origin main
+</div>
+
+<h3>Step D: Cleanup Merged Branches</h3>
+<div class="cmd-block">
+<span class="comment"># Delete local branch:</span>
+git branch -d feature-user-agent
+<span class="comment"># Delete branch on GitHub remote:</span>
+git push origin --delete feature-user-agent
+</div>
+
+<div class="page-break"></div>
+
+<h2>5. Git Stash: Shelving Uncommitted Work Safely</h2>
+<p>
+<b>Scenario:</b> You are midway through modifying code, but you must urgently switch branches or pull incoming updates from GitHub. Git blocks you stating <i>"Please commit or stash your changes"</i>.
+</p>
+
+<h3>Essential Git Stash Commands:</h3>
+<div class="cmd-block">
+<span class="comment"># 1. Temporarily shelve uncommitted working tree changes:</span>
+git stash save <span class="val">"WIP: Drive mounting refactor"</span>
+
+<span class="comment"># Working directory is now clean. You can safely pull or switch:</span>
+git pull origin main
+
+<span class="comment"># 2. Restore your shelved changes back to the working directory:</span>
+git stash pop
+
+<span class="comment"># 3. List all saved stashes:</span>
+git stash list
+
+<span class="comment"># 4. Discard a specific or latest stash:</span>
+git stash drop
+</div>
+
+<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;">
+
+<h2>6. Merge Conflict Resolution (Step-by-Step SOP)</h2>
+<p>
+<b>Why do conflicts happen?</b> When two branches have modified the exact same lines of code within the same file, Git pauses the merge and asks the developer to decide which version to preserve.
+</p>
+
+<h3>Visual Anatomy of a Merge Conflict:</h3>
+<div class="conflict-box">
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD (Your Local Working Code)<br>
+string apiUrl = "https://pcaccess.ourdemos.com";<br>
+=======<br>
+string apiUrl = "https://api.pcaccess.com";<br>
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main (Incoming Remote Code)
+</div>
+
+<h3>4 Steps to Resolve Any Conflict:</h3>
 <ol>
-  <li>Launch GitHub Desktop and log in.</li>
-  <li>Select: <b>File</b> ➔ <b>Clone Repository...</b></li>
-  <li>Pick <code>PCAccess-</code> from the repository list and choose an empty destination folder.</li>
-  <li>Click <b>Clone</b> to fetch all source code, agents, and release packages.</li>
+  <li>
+    <b>Open Conflicted Files in IDE:</b>
+    <br>Locate the <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> conflict markers.
+  </li>
+  <li>
+    <b>Perform Manual Decision & Cleanup:</b>
+    <br>Keep the intended lines of code, remove unwanted lines, and <b>delete all 3 conflict delimiter lines completely</b>.
+  </li>
+  <li>
+    <b>Stage Resolved Files and Finalize:</b>
+    <div class="cmd-block">
+git add .
+git commit -m <span class="val">"Fix: Resolve merge conflict in AgentConfig"</span>
+git push
+    </div>
+  </li>
+  <li>
+    <b>Emergency Abort (Return to Clean State):</b>
+    <div class="cmd-block">
+git merge --abort
+<span class="comment"># (If conflict occurred during git pull --rebase):</span>
+git rebase --abort
+    </div>
+  </li>
 </ol>
 
-<h2>6. Daily Git Operations Cheat Sheet</h2>
+<div class="page-break"></div>
+
+<h2>7. GitHub Desktop Operations Matrix</h2>
 
 <table>
   <thead>
     <tr>
-      <th style="width: 35%;">Operation</th>
-      <th style="width: 65%;">Command</th>
+      <th style="width: 25%;">Operation</th>
+      <th style="width: 75%;">GitHub Desktop Action</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Inspect working tree status</td>
-      <td><code>git status</code></td>
+      <td><b>Fetch / Pull</b></td>
+      <td>Click <b>"Fetch origin"</b> in the top right. If remote commits exist, the button becomes <b>"Pull origin"</b>. Click to merge.</td>
     </tr>
     <tr>
-      <td>Stage all modifications</td>
-      <td><code>git add .</code></td>
+      <td><b>Push</b></td>
+      <td>After creating a local commit, the upper bar displays <b>"Push origin"</b> with commit count. Click to upload.</td>
     </tr>
     <tr>
-      <td>Record staged changes</td>
-      <td><code>git commit -m "Description of changes"</code></td>
+      <td><b>Branch Creation</b></td>
+      <td>Click <b>"Current branch"</b> dropdown ➔ Click <b>"New branch"</b> ➔ Provide branch name ➔ Click <b>"Create branch"</b>.</td>
     </tr>
     <tr>
-      <td>Upload commits to GitHub</td>
-      <td><code>git push</code></td>
+      <td><b>Branch Merging</b></td>
+      <td>Menu: <b>Branch</b> ➔ <b>"Merge into current branch..."</b> ➔ Select source branch ➔ Click <b>"Create a merge commit"</b>.</td>
     </tr>
     <tr>
-      <td>Fetch and merge remote updates</td>
-      <td><code>git pull origin main</code></td>
+      <td><b>Stash Changes</b></td>
+      <td>When switching branches with modified files, GitHub Desktop automatically asks to stash or carry changes to the target branch.</td>
     </tr>
     <tr>
-      <td>Review recent commit history</td>
-      <td><code>git log --oneline -n 5</code></td>
+      <td><b>Conflict Resolution</b></td>
+      <td>GitHub Desktop lists all conflicted files with an <b>"Open in Visual Studio"</b> shortcut. Once markers are cleaned, a green checkmark appears.</td>
     </tr>
   </tbody>
 </table>
 
+<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;">
+
+<h2>8. Golden Git Master Cheat Sheet</h2>
+
+<div class="cmd-block">
+<span class="comment"># 1. Status & History</span>
+git status                              <span class="comment"># Check current modified files</span>
+git log --oneline -n 5                 <span class="comment"># View 5 most recent commits</span>
+
+<span class="comment"># 2. Stashing</span>
+git stash                              <span class="comment"># Hide incomplete work</span>
+git stash pop                          <span class="comment"># Restore shelved work</span>
+
+<span class="comment"># 3. Pulling & Fetching</span>
+git fetch origin                       <span class="comment"># Download metadata without touching local files</span>
+git pull --rebase origin main          <span class="comment"># Pull remote changes with clean linear history</span>
+
+<span class="comment"># 4. Branch Management</span>
+git checkout -b feature-name           <span class="comment"># Create and switch to branch</span>
+git checkout main                      <span class="comment"># Return to production branch</span>
+git merge feature-name                 <span class="comment"># Merge branch into current branch</span>
+
+<span class="comment"># 5. Pushing Code</span>
+git push origin main                   <span class="comment"># Upload commits to GitHub</span>
+</div>
+
 <div class="footer">
-  PCAccess Project • Git & GitHub Master Guide • Visibit Technologies • 2026
+  PCAccess Project • Advanced Git & GitHub Master Guide • Visibit Technologies • 2026
 </div>
 
 </body>
