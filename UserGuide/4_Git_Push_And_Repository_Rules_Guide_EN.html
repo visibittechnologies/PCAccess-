@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GitRule - Complete Step-by-Step Git & GitHub Master Guide (English)</title>
+<style>
+  @page { size: A4; margin: 15mm 14mm 15mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 13px;
+    background: #fff;
+    margin: 0; padding: 0;
+  }
+  .header-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    color: #fff;
+    padding: 22px 26px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.18);
+  }
+  .header-card h1 { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-card .subtitle { font-size: 13.5px; color: #c7d2fe; margin-bottom: 12px; }
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.16);
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  h2 {
+    font-size: 16.5px;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 5px;
+    margin-top: 22px;
+    margin-bottom: 10px;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 14px; color: #1e3a8a; margin: 14px 0 6px 0; page-break-after: avoid; }
+  p { margin: 6px 0 10px 0; }
+  .alert-box {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 12.5px;
+  }
+  .alert-box.info { background: #eff6ff; border-left-color: #2563eb; }
+  .alert-box.warning { background: #fffbeb; border-left-color: #d97706; }
+  .alert-box.danger { background: #fef2f2; border-left-color: #dc2626; }
+  
+  pre, code {
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  code {
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .cmd-block {
+    background: #0f172a;
+    color: #38bdf8;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 8px 0 12px 0;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-x: auto;
+  }
+  .cmd-block .comment { color: #94a3b8; font-style: italic; }
+  .cmd-block .keyword { color: #f472b6; font-weight: bold; }
+  .cmd-block .val { color: #fde047; }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 12px;
+    page-break-inside: avoid;
+  }
+  th, td {
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f8fafc;
+    color: #334155;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .page-break { page-break-before: always; }
+  .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+  .footer {
+    margin-top: 24px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 10px;
+    font-size: 11px;
+    color: #64748b;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <h1>Git & GitHub Full Manual Setup & Rules Guide (English)</h1>
+  <div class="subtitle">Complete Standard Operating Procedure (SOP) to Initialize, Configure, and Push Any Project to GitHub</div>
+  <div class="badge-row">
+    <span class="badge">Master Git Rule</span>
+    <span class="badge">Terminal & CMD Ready</span>
+    <span class="badge">Multi-Account Safe</span>
+    <span class="badge">GitHub Desktop</span>
+    <span class="badge">Error Resolution</span>
+  </div>
+</div>
+
+<h2>1. Introduction & Security Philosophy</h2>
+<p>
+This document establishes the official SOP for version controlling and publishing any software solution (such as <code>PCAccess</code>) to GitHub from scratch. Following these exact steps guarantees safe initialization, zero credentials leakage, proper exclusion of build artifacts, and smooth pushing via Command Prompt, PowerShell, or GitHub Desktop.
+</p>
+
+<div class="alert-box info">
+  <b>💡 Security Authentication Rule:</b> Since August 2021, GitHub permanently deprecated direct password authentication for Git operations. All pushes require either <b>Browser OAuth (Git Credential Manager)</b> or a <b>Personal Access Token (PAT)</b>.
+</div>
+
+<h2>2. Pre-Staging: .gitignore Architecture (Mandatory First Step)</h2>
+<p>
+Before staging any .NET / Visual Studio solution into Git, a robust <code>.gitignore</code> must exist at the workspace root to prevent tracking large binary builds, caches, user-specific settings, and temporary files.
+</p>
+
+<div class="cmd-block">
+<span class="comment"># Essential .gitignore rules for Visual Studio solutions:</span>
+[Bb]in/
+[Oo]bj/
+packages/
+.vs/
+*.user
+*.suo
+*.bak
+</div>
+
+<h2>3. End-to-End Command Flow (Terminal / CMD / PowerShell)</h2>
+
+<h3><span class="step-num">1</span> Navigate to the Project Root</h3>
+<p>Open Command Prompt or PowerShell and switch to the repository folder:</p>
+<div class="cmd-block">
+cd /d E:\Git\PCAccess
+</div>
+
+<h3><span class="step-num">2</span> Initialize Git Repository</h3>
+<div class="cmd-block">
+git init
+</div>
+<p>This creates the hidden <code>.git/</code> directory holding the repository database and tracking metadata.</p>
+
+<h3><span class="step-num">3</span> Configure Project-Specific Identity (Local Isolation)</h3>
+<p>Avoid changing the workstation's global Git profile. Always assign the company / client identity locally to the repo:</p>
+<div class="cmd-block">
+git config user.name <span class="val">"Visibit Technologies"</span>
+git config user.email <span class="val">"visibittechnologies@gmail.com"</span>
+</div>
+
+<div class="page-break"></div>
+
+<h3><span class="step-num">4</span> Standardize the Default Branch to 'main'</h3>
+<div class="cmd-block">
+git branch -M main
+</div>
+
+<h3><span class="step-num">5</span> Stage and Commit All Solution Files</h3>
+<div class="cmd-block">
+<span class="comment"># Stage all tracked and new files (excluding those in .gitignore):</span>
+git add .
+
+<span class="comment"># Create the snapshot with a meaningful message:</span>
+git commit -m <span class="val">"Initial commit: Project full codebase with documentation"</span>
+</div>
+
+<h3><span class="step-num">6</span> Create Repository on GitHub</h3>
+<ol>
+  <li>Navigate to: <b>https://github.com/new</b> in your web browser.</li>
+  <li>Enter the Repository Name (e.g., <code>PCAccess-</code> or <code>PCAccess</code>). <i>(Notice exact spelling and trailing characters)</i>.</li>
+  <li>Choose Public or Private, leave "Add README" unchecked, and click <b>"Create repository"</b>.</li>
+</ol>
+
+<h3><span class="step-num">7</span> Link Remote Origin (⭐ The Multi-Account Golden Rule)</h3>
+<p>
+If Windows Credential Manager has another GitHub account cached (e.g., a personal developer account), a standard remote link will fail with <b>HTTP 403 Forbidden</b>. 
+<br><b>The Proven Resolution:</b> Explicitly prefix the target GitHub username in the remote URL:
+</p>
+
+<div class="cmd-block">
+<span class="comment"># Format: https://&lt;username&gt;@github.com/&lt;username&gt;/&lt;repo&gt;.git</span>
+git remote add origin https://visibittechnologies@github.com/visibittechnologies/PCAccess-.git
+</div>
+
+<p>To update an existing remote URL:</p>
+<div class="cmd-block">
+git remote set-url origin https://visibittechnologies@github.com/visibittechnologies/PCAccess-.git
+</div>
+
+<h3><span class="step-num">8</span> Push to GitHub Remote</h3>
+<div class="cmd-block">
+git push -u origin main
+</div>
+
+<div class="alert-box info">
+  <b>What to expect:</b> Git Credential Manager will invoke a browser window. If you are already signed into GitHub as <code>visibittechnologies</code>, simply click the green <b>"Authorize"</b> button. Your entire codebase will push cleanly.
+</div>
+
+<h2>4. Troubleshooting Matrix (Common Errors & Solutions)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 28%;">Error Message</th>
+      <th style="width: 32%;">Root Cause</th>
+      <th style="width: 40%;">Exact Solution</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>remote: Repository not found</b></td>
+      <td>Repository not created yet on GitHub, or character mismatch (e.g. <code>PCAccess</code> vs <code>PCAccess-</code>).</td>
+      <td>Verify browser URL and re-point remote:<br><code>git remote set-url origin &lt;exact_url&gt;</code></td>
+    </tr>
+    <tr>
+      <td><b>Permission denied to &lt;user&gt; (HTTP 403)</b></td>
+      <td>Windows cached credentials for another account.</td>
+      <td>Inject target username into URL:<br><code>https://visibittechnologies@github.com/...</code></td>
+    </tr>
+    <tr>
+      <td><b>Password authentication was removed</b></td>
+      <td>Account password was entered into terminal.</td>
+      <td>Use browser OAuth prompt or Personal Access Token (PAT) with <code>repo</code> scope.</td>
+    </tr>
+    <tr>
+      <td><b>fatal: not a git repository</b></td>
+      <td>Command run in directory without Git initialized.</td>
+      <td>Run <code>git init</code> in the project directory.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>5. GitHub Desktop Integration Rules</h2>
+
+<h3>Rule A: On This Same PC (Where Code Already Exists)</h3>
+<ol>
+  <li>Launch GitHub Desktop.</li>
+  <li>Go to top menu: <b>File</b> ➔ <b>Add Local Repository...</b> (Shortcut: <code>Ctrl + O</code>).</li>
+  <li>Select directory: <code>E:\Git\PCAccess</code>.</li>
+  <li>Click <b>Add Repository</b>.</li>
+</ol>
+<div class="alert-box warning">
+  <b>Important:</b> Never select "Clone" for this directory on this PC, as it will throw <i>"Folder already exists"</i>.
+</div>
+
+<h3>Rule B: On a Fresh PC or for Team Members</h3>
+<ol>
+  <li>Launch GitHub Desktop and log in.</li>
+  <li>Select: <b>File</b> ➔ <b>Clone Repository...</b></li>
+  <li>Pick <code>PCAccess-</code> from the repository list and choose an empty destination folder.</li>
+  <li>Click <b>Clone</b> to fetch all source code, agents, and release packages.</li>
+</ol>
+
+<h2>6. Daily Git Operations Cheat Sheet</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 35%;">Operation</th>
+      <th style="width: 65%;">Command</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Inspect working tree status</td>
+      <td><code>git status</code></td>
+    </tr>
+    <tr>
+      <td>Stage all modifications</td>
+      <td><code>git add .</code></td>
+    </tr>
+    <tr>
+      <td>Record staged changes</td>
+      <td><code>git commit -m "Description of changes"</code></td>
+    </tr>
+    <tr>
+      <td>Upload commits to GitHub</td>
+      <td><code>git push</code></td>
+    </tr>
+    <tr>
+      <td>Fetch and merge remote updates</td>
+      <td><code>git pull origin main</code></td>
+    </tr>
+    <tr>
+      <td>Review recent commit history</td>
+      <td><code>git log --oneline -n 5</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  PCAccess Project • Git & GitHub Master Guide • Visibit Technologies • 2026
+</div>
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>GitRule - Complete Step-by-Step Git & GitHub Master Guide</title>
+<style>
+  @page { size: A4; margin: 15mm 14mm 15mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 13px;
+    background: #fff;
+    margin: 0; padding: 0;
+  }
+  .header-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    color: #fff;
+    padding: 22px 26px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.18);
+  }
+  .header-card h1 { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-card .subtitle { font-size: 13.5px; color: #c7d2fe; margin-bottom: 12px; }
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.16);
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  h2 {
+    font-size: 16.5px;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 5px;
+    margin-top: 22px;
+    margin-bottom: 10px;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 14px; color: #1e3a8a; margin: 14px 0 6px 0; page-break-after: avoid; }
+  p { margin: 6px 0 10px 0; }
+  .alert-box {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 12.5px;
+  }
+  .alert-box.info { background: #eff6ff; border-left-color: #2563eb; }
+  .alert-box.warning { background: #fffbeb; border-left-color: #d97706; }
+  .alert-box.danger { background: #fef2f2; border-left-color: #dc2626; }
+  
+  pre, code {
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  code {
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .cmd-block {
+    background: #0f172a;
+    color: #38bdf8;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 8px 0 12px 0;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-x: auto;
+  }
+  .cmd-block .comment { color: #94a3b8; font-style: italic; }
+  .cmd-block .keyword { color: #f472b6; font-weight: bold; }
+  .cmd-block .val { color: #fde047; }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 12px;
+    page-break-inside: avoid;
+  }
+  th, td {
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f8fafc;
+    color: #334155;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .page-break { page-break-before: always; }
+  .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+  .footer {
+    margin-top: 24px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 10px;
+    font-size: 11px;
+    color: #64748b;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <h1>Git & GitHub Full Manual Setup & Rules Guide (हिंदी / Hinglish)</h1>
+  <div class="subtitle">शुरुआत से अंत तक (Scratch to Remote Push) किसी भी प्रोजेक्ट को GitHub पर डालने का पक्का और सुरक्षित नियम</div>
+  <div class="badge-row">
+    <span class="badge">Master Git Rule</span>
+    <span class="badge">Terminal & CMD Ready</span>
+    <span class="badge">Multi-Account Safe</span>
+    <span class="badge">GitHub Desktop</span>
+    <span class="badge">Error Resolution</span>
+  </div>
+</div>
+
+<h2>1. भूमिका (Introduction & Core Philosophy)</h2>
+<p>
+इस गाइड का उद्देश्य यह है कि अगली बार जब भी आप कोई नया या मौजूदा प्रोजेक्ट (जैसे <code>PCAccess</code>) पहली बार Git और GitHub पर डालना चाहें, तो आप बिना किसी परेशानी, बिना पासवर्ड एरर और बिना अकाउंट कन्फ्यूजन के <b>टर्मिनल / CMD या GitHub Desktop</b> से 100% खुद कर सकें।
+</p>
+
+<div class="alert-box info">
+  <b>💡 सबसे महत्वपूर्ण बात:</b> अगस्त 2021 से GitHub ने टर्मिनल में डायरेक्ट पासवर्ड (जैसे <code>awebworld*123#</code>) लेना बंद कर दिया है। Git अब <b>Browser Login (OAuth)</b> या <b>Personal Access Token (PAT)</b> से ही काम करता है।
+</div>
+
+<h2>2. स्टेजिंग से पहले: .gitignore की तैयारी (Most Critical Step)</h2>
+<p>
+किसी भी .NET / C# / Web प्रोजेक्ट को Git में डालने से पहले <code>.gitignore</code> फाइल बनाना जरूरी है, ताकि <b>bin, obj, packages, और .vs</b> जैसी भारी फाइलें गिट में न जाएँ और केवल ओरिजिनल कोड ही पुश हो।
+</p>
+
+<div class="cmd-block">
+<span class="comment"># अपने प्रोजेक्ट रूट में .gitignore फाइल बनाएं और ये नियम रखें:</span>
+[Bb]in/
+[Oo]bj/
+packages/
+.vs/
+*.user
+*.suo
+*.bak
+</div>
+
+<h2>3. पूरा टर्मिनल प्रोसेस: Step-by-Step Command Flow</h2>
+
+<h3><span class="step-num">1</span> प्रोजेक्ट फोल्डर में जाएँ (Navigate to Project)</h3>
+<p>कमांड प्रॉम्प्ट (CMD) या PowerShell खोलें और अपने प्रोजेक्ट डायरेक्टरी में जाएँ:</p>
+<div class="cmd-block">
+cd /d E:\Git\PCAccess
+</div>
+
+<h3><span class="step-num">2</span> गिट रिपॉजिटरी शुरू करें (Initialize Git)</h3>
+<div class="cmd-block">
+git init
+</div>
+<p>यह आपके प्रोजेक्ट में एक छुपी हुई <code>.git</code> डायरेक्टरी बना देगा।</p>
+
+<h3><span class="step-num">3</span> प्रोजेक्ट के लिए अपना नाम और ईमेल सेट करें (Local User Config)</h3>
+<p>अगर आपके PC पर पहले से कोई दूसरा गिट अकाउंट चल रहा है, तो <code>--global</code> इस्तेमाल न करें। केवल इस प्रोजेक्ट के लिए लोकल पहचान सेट करें:</p>
+<div class="cmd-block">
+git config user.name <span class="val">"Visibit Technologies"</span>
+git config user.email <span class="val">"visibittechnologies@gmail.com"</span>
+</div>
+
+<div class="page-break"></div>
+
+<h3><span class="step-num">4</span> मेन ब्रांच का नाम सेट करें (Set Default Branch to 'main')</h3>
+<div class="cmd-block">
+git branch -M main
+</div>
+
+<h3><span class="step-num">5</span> कोड फाइल्स को स्टेज करें और कमिट करें (Stage & Commit)</h3>
+<div class="cmd-block">
+<span class="comment"># सभी फाइल्स को ट्रैक करें (.gitignore के अनुसार फालतू फाइल्स छोड़ दी जाएँगी):</span>
+git add .
+
+<span class="comment"># पहला कमिट बनाएं:</span>
+git commit -m <span class="val">"Initial commit: Project full codebase with documentation"</span>
+</div>
+
+<h3><span class="step-num">6</span> GitHub पर नई Repository बनाएं</h3>
+<ol>
+  <li>ब्राउज़र में जाएँ: <b>https://github.com/new</b></li>
+  <li>Repository name डालें (जैसे <code>PCAccess</code>)। <i>(ध्यान रखें: नाम में गलती से dash <code>-</code> न लगे)</i></li>
+  <li>Public या Private चुनें और <b>"Create repository"</b> पर क्लिक करें।</li>
+</ol>
+
+<h3><span class="step-num">7</span> Remote Origin लिंक करें (⭐ Golden Rule for Multi-Account)</h3>
+<p>
+अगर आपके कंप्यूटर पर पहले से कोई दूसरा गिट अकाउंट (जैसे <code>sonukr9525</code>) सेव है, तो डायरेक्ट लिंक करने पर <b>403 Permission Denied</b> आ सकता है। 
+<br><b>इसका 100% सही समाधान:</b> URL में अपने GitHub यूजरनेम का प्रीफिक्स लगाएँ:
+</p>
+
+<div class="cmd-block">
+<span class="comment"># फॉर्मेट: https://&lt;username&gt;@github.com/&lt;username&gt;/&lt;repo&gt;.git</span>
+git remote add origin https://visibittechnologies@github.com/visibittechnologies/PCAccess-.git
+</div>
+
+<p>अगर पहले से गलत remote जुड़ गया हो, तो उसे इस कमांड से बदलें:</p>
+<div class="cmd-block">
+git remote set-url origin https://visibittechnologies@github.com/visibittechnologies/PCAccess-.git
+</div>
+
+<h3><span class="step-num">8</span> गिटहब पर कोड पुश करें (Push to Remote)</h3>
+<div class="cmd-block">
+git push -u origin main
+</div>
+
+<div class="alert-box info">
+  <b>स्क्रीन पर क्या होगा:</b> पहली बार यह कमांड चलाने पर Git Credential Manager का ब्राउज़र पॉपअप खुलेगा। चूँकि आप ब्राउज़र में पहले से लॉगिन हैं, बस <b>"Authorize"</b> पर क्लिक करें। आपका कोड 100% सफलतापूर्वक पुश हो जाएगा!
+</div>
+
+<h2>4. मुख्य समस्याएं और उनके 1-मिनट समाधान (Troubleshooting Matrix)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 28%;">समस्या / एरर</th>
+      <th style="width: 32%;">कारण</th>
+      <th style="width: 40%;">सटीक समाधान (Solution)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>remote: Repository not found</b></td>
+      <td>रिपॉजिटरी अभी GitHub पर नहीं बनी है या नाम में स्पेलिंग मिस्टेक है (जैसे <code>PCAccess</code> vs <code>PCAccess-</code>)।</td>
+      <td>ब्राउज़र में exact URL चेक करें और कमांड चलाएं:<br><code>git remote set-url origin &lt;correct_url&gt;</code></td>
+    </tr>
+    <tr>
+      <td><b>Permission denied to &lt;old_user&gt; (HTTP 403)</b></td>
+      <td>Windows Credential Manager में किसी दूसरे अकाउंट के क्रेडेंशियल्स कैश्ड हैं।</td>
+      <td>Remote URL में यूजरनेम लगा दें:<br><code>https://visibittechnologies@github.com/...</code></td>
+    </tr>
+    <tr>
+      <td><b>Support for password authentication was removed</b></td>
+      <td>टर्मिनल में अकाउंट का मुख्य पासवर्ड डाला गया है।</td>
+      <td>ब्राउज़र ऑथराइज़ेशन पॉपअप का उपयोग करें या <b>Personal Access Token (PAT)</b> का इस्तेमाल करें।</td>
+    </tr>
+    <tr>
+      <td><b>fatal: not a git repository</b></td>
+      <td>उस फोल्डर में Git इनिशियलाइज़ नहीं किया गया है।</td>
+      <td>प्रोजेक्ट फोल्डर में जाकर <code>git init</code> चलाएं।</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>5. GitHub Desktop में उपयोग करने के नियम</h2>
+
+<h3>नियम A: इसी कंप्यूटर पर (जहाँ कोड पहले से मौजूद है)</h3>
+<ol>
+  <li>GitHub Desktop खोलें।</li>
+  <li>मेनू बार में जाएँ: <b>File</b> ➔ <b>Add Local Repository...</b> (शॉर्टकट: <code>Ctrl + O</code>)</li>
+  <li>लोकल पाथ चुनें: <code>E:\Git\PCAccess</code></li>
+  <li><b>Add Repository</b> पर क्लिक करें।</li>
+</ol>
+<div class="alert-box warning">
+  <b>चेतावनी:</b> इसी कंप्यूटर पर "Clone" न करें, नहीं तो वह <i>"Folder already exists"</i> का एरर देगा।
+</div>
+
+<h3>नियम B: नए कंप्यूटर पर या टीम मेंबर के सिस्टम पर</h3>
+<ol>
+  <li>GitHub Desktop खोलें और अपने अकाउंट से साइन-इन करें।</li>
+  <li><b>File</b> ➔ <b>Clone Repository...</b> पर क्लिक करें।</li>
+  <li>लिस्ट में से <code>PCAccess-</code> चुनें और लोकल पाथ देकर <b>Clone</b> दबाएँ। पूरा प्रोजेक्ट डाउनलोड हो जाएगा।</li>
+</ol>
+
+<h2>6. भविष्य में रोज़मर्रा काम आने वाली Git कमांड्स (Daily Cheat Sheet)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 35%;">काम / ऑपरेशन</th>
+      <th style="width: 65%;">कमांड</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>बदलावों की स्थिति देखना</td>
+      <td><code>git status</code></td>
+    </tr>
+    <tr>
+      <td>सभी नई या बदली हुई फाइलों को जोड़ना</td>
+      <td><code>git add .</code></td>
+    </tr>
+    <tr>
+      <td>नया कमिट रिकॉर्ड करना</td>
+      <td><code>git commit -m "Update: Added new features or bug fixes"</code></td>
+    </tr>
+    <tr>
+      <td>GitHub पर अपडेट भेजना</td>
+      <td><code>git push</code></td>
+    </tr>
+    <tr>
+      <td>GitHub से नवीनतम कोड खींचना</td>
+      <td><code>git pull origin main</code></td>
+    </tr>
+    <tr>
+      <td>कमिट हिस्ट्री देखना</td>
+      <td><code>git log --oneline -n 5</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  PCAccess Project • Git & GitHub Master Guide • Visibit Technologies • 2026
+</div>
+
+</body>
+</html>
