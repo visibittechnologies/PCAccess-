@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -11,7 +11,7 @@ namespace UserLoginAgent
     /// </summary>
     public class UserAgentConfig
     {
-        public string ServerUrl { get; set; } = "https://pcaccess.ourdemos.com";
+        public string ServerUrl { get; set; } = "https://remote.primaryportal.co.uk";
         public string UsernameOrEmail { get; set; } = "";
         public string SavedPasswordBase64 { get; set; } = "";
         public string DriveLetter { get; set; } = "R:";

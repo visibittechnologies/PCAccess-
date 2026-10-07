@@ -1,12 +1,12 @@
 ﻿========================================================================
    PCAccess - UserLoginAgent (Employee / User Direct Remote Drive)
 ========================================================================
-Server URL : https://pcaccess.ourdemos.com
+Server URL : https://remote.primaryportal.co.uk
 Default Drive : R: (Remote Drive)
 
 HOW TO USE:
 1. Double-click 'run.bat' to launch the agent.
-2. Server URL will automatically default to: https://pcaccess.ourdemos.com
+2. Server URL will automatically default to: https://remote.primaryportal.co.uk
    Just press [ENTER].
 3. Enter your Username / Email and Password.
 4. Drive R: ('Remote Drive') will automatically mount and open in Windows Explorer!

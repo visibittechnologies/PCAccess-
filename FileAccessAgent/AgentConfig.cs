@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -11,7 +11,7 @@ namespace FileAccessAgent
     /// </summary>
     public class AgentConfig
     {
-        public string ServerUrl { get; set; } = "https://pcaccess.ourdemos.com";
+        public string ServerUrl { get; set; } = "https://remote.primaryportal.co.uk";
         public Guid DeviceGuid { get; set; } = Guid.Empty;
         public string DeviceName { get; set; } = Environment.MachineName;
         public string DeviceToken { get; set; } = "";

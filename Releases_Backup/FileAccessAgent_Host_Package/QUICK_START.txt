@@ -1,13 +1,13 @@
 ﻿========================================================================
    PCAccess - FileAccessAgent (Host PC Folder Sharing Service)
 ========================================================================
-Server URL : https://pcaccess.ourdemos.com
+Server URL : https://remote.primaryportal.co.uk
 
 HOW TO PAIR:
 1. Double-click 'run.bat' on the computer where physical folders are located.
 2. Note the 6-Digit Pairing Code displayed on the console (e.g. 582-194).
 3. Log in to the Admin Web Portal:
-   https://pcaccess.ourdemos.com/Admin/DeviceFolders
+   https://remote.primaryportal.co.uk/Admin/DeviceFolders
 4. Click 'Pair Device' and enter the 6-digit code.
 5. Your machine is now securely paired and ONLINE!
 

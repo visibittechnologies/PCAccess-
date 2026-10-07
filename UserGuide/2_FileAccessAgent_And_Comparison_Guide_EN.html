@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -108,14 +108,14 @@
   <strong>FileAccessAgent</strong> is a secure background service that runs on the <strong>Host PC / Office Server</strong> where company files physically reside.
 </p>
 <div class="alert-box">
-  <strong>Key Architecture:</strong> Similar to TeamViewer or AnyDesk, it establishes an <strong>outbound-only WebSocket connection</strong> via SignalR to <code>https://pcaccess.ourdemos.com</code>. It requires <strong>no public IP, no static IP, and no router port-forwarding</strong>.
+  <strong>Key Architecture:</strong> Similar to TeamViewer or AnyDesk, it establishes an <strong>outbound-only WebSocket connection</strong> via SignalR to <code>https://remote.primaryportal.co.uk</code>. It requires <strong>no public IP, no static IP, and no router port-forwarding</strong>.
 </div>
 
 <h2>2. Pairing Workflow (Step-by-Step)</h2>
 <div class="avoid-break">
   <p><span class="step-num">1</span> <strong>Run Agent:</strong> Double-click <code>run.bat</code> on the Host PC.</p>
   <p><span class="step-num">2</span> <strong>View 6-Digit PIN:</strong> A temporary 6-digit pairing code (e.g., <code>582-194</code>) appears on the console, valid for 15 minutes.</p>
-  <p><span class="step-num">3</span> <strong>Pair via Web Portal:</strong> Log in to the Admin Dashboard (<code>https://pcaccess.ourdemos.com/Admin/DeviceFolders</code>) and submit the 6-digit code.</p>
+  <p><span class="step-num">3</span> <strong>Pair via Web Portal:</strong> Log in to the Admin Dashboard (<code>https://remote.primaryportal.co.uk/Admin/DeviceFolders</code>) and submit the 6-digit code.</p>
   <p><span class="step-num">4</span> <strong>Device Becomes ONLINE:</strong> A cryptographic token binds the device permanently. The web dashboard will now show the device as <strong>ONLINE</strong>.</p>
   <p><span class="step-num">5</span> <strong>Assign Folders:</strong> Register local physical paths (e.g. <code>D:\CompanyFiles</code>) and grant permissions to users.</p>
 </div>
