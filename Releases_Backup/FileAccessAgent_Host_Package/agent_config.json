@@ -1,8 +1,8 @@
-﻿{
+{
   "ServerUrl": "https://remote.primaryportal.co.uk",
-  "DeviceGuid": "00000000-0000-0000-0000-000000000000",
-  "DeviceName": "",
-  "DeviceToken": "",
+  "DeviceGuid": "4f955071-ff01-4dae-aef8-9c3f2e96f7d4",
+  "DeviceName": "abhishek",
+  "DeviceToken": "f20a68efbf284210a620603ca57b3155d4acf92d0dbd4fc38f2768854ba7b945",
   "DriveLetter": "R:",
   "DriveLabel": "Remote Drive",
   "EnableRemoteDrive": true
