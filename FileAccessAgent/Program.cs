@@ -32,8 +32,13 @@ namespace FileAccessAgent
         {
 #pragma warning disable SYSLIB0014
             System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
-            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
+            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12 | System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls;
 #pragma warning restore SYSLIB0014
+
+            _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 PCAccessFileAccessAgent/1.0");
+            _httpClient.DefaultRequestHeaders.Accept.Clear();
+            _httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
         }
 
 
@@ -286,11 +291,42 @@ namespace FileAccessAgent
                 var response = await _httpClient.PostAsync(registerEndpoint, content);
                 string responseBody = await response.Content.ReadAsStringAsync();
 
-                var res = JObject.Parse(responseBody);
-                string? status = res["status"]?.ToString();
-                string? message = res["message"]?.ToString();
+                if (!response.IsSuccessStatusCode)
+                {
+                    string hint = "";
+                    int code = (int)response.StatusCode;
+                    if (code == 403)
+                    {
+                        hint = " (Access forbidden: Server security / firewall blocked the request)";
+                    }
+                    else if (code == 404)
+                    {
+                        hint = " (Endpoint /DeviceAPI/Register not found on server)";
+                    }
+                    else if (code >= 500)
+                    {
+                        hint = " (Server internal error occurred)";
+                    }
 
-                if (status == "success" && res["data"] != null)
+                    AgentLogger.Error($"[ERROR] Server returned HTTP {code} ({response.ReasonPhrase}){hint}");
+                    return false;
+                }
+
+                JObject? res = null;
+                try
+                {
+                    res = JObject.Parse(responseBody);
+                }
+                catch (JsonReaderException)
+                {
+                    AgentLogger.Error($"[ERROR] Server returned invalid response format (not valid JSON). HTTP {(int)response.StatusCode}.");
+                    return false;
+                }
+
+                string? status = res?["status"]?.ToString();
+                string? message = res?["message"]?.ToString();
+
+                if (status == "success" && res?["data"] != null)
                 {
                     _config.DeviceToken = res["data"]?["device_token"]?.ToString() ?? "";
                     _config.Save();
@@ -318,6 +354,7 @@ namespace FileAccessAgent
             AgentLogger.Info($"[SIGNALR] Connecting to {serverUrl}/signalr...");
 
             _hubConnection = new HubConnection(serverUrl);
+            _hubConnection.Headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 PCAccessFileAccessAgent/1.0";
             _deviceHub = _hubConnection.CreateHubProxy("DeviceHub");
 
             // REASON: Step 3 - Listen for folder path validation commands from server/dashboard

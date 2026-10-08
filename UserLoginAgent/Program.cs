@@ -29,6 +29,9 @@ namespace UserLoginAgent
             Console.Title = "PCAccess - User Login Agent (Remote Drive)";
             Console.OutputEncoding = Encoding.UTF8;
 
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12 | System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls;
+
             _config = UserAgentConfig.Load();
 
             // Handle CLI commands if arguments provided (e.g. status, stop, logout)
