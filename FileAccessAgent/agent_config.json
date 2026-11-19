@@ -1,5 +1,5 @@
 ﻿{
-  "ServerUrl": "https://remote.primaryportal.co.uk",
+  "ServerUrl": "https://localhost:44355",
   "DeviceGuid": "00000000-0000-0000-0000-000000000000",
   "DeviceName": "",
   "DeviceToken": "",

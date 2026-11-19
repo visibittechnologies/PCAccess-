@@ -1,5 +1,5 @@
 ﻿{
-  "ServerUrl": "https://remote.primaryportal.co.uk",
+  "ServerUrl": "https://localhost:44355",
   "UsernameOrEmail": "",
   "SavedPasswordBase64": "",
   "DriveLetter": "R:",
