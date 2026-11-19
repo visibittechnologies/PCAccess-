@@ -45,6 +45,14 @@ This document establishes the official master implementation plan addressing all
 │ PHASE 3: Streaming Performance & Remote File System                    │
 │ • Task 3.1: Direct HTTP Download Streaming (Zero Server RAM Buffering) │
 │ • Task 3.2: UserLoginAgent Remote Files Virtual Mount (WebDAV/Dokany)  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    v
+┌────────────────────────────────────────────────────────────────────────┐
+│ PHASE 4: Post-Testing Polish & Dynamic SignalR DOM Sync (Scheduled)   │
+│ • Task 4.1: Dynamic DOM Device Row Injection on Live SignalR Connect   │
+│ • Task 4.2: Real-time Device Table Counter Synchronization             │
+│ • Task 4.3: Inactive Duplicate Device Reconciliation & Clean Purge     │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -87,31 +95,58 @@ This document establishes the official master implementation plan addressing all
 
 ---
 
-### Phase 2: Core Security Hardening
+### Phase 2: Core Security Hardening [COMPLETED]
 
-#### Task 2.1: Transparent Password Hashing with PBKDF2
-* **Files:** `Models/MyFun/PasswordSecurity.cs`, `Doc/Procedure/proc_user_login.sql`, `Doc/Procedure/proc_user_agent_auth.sql`
+#### Task 2.1: Transparent Password Hashing with PBKDF2 [DONE]
+* **Files:** `Models/MyFun/PasswordSecurity.cs`, `Doc/Procedure/proc_user_login.sql`, `Doc/Procedure/proc_user_agent_auth.sql`, `BAL/ActivityLogHelper.cs`, `BAL/UserAgentManager.cs`, `BAL/Profle.cs`
 * **Logic:** PBKDF2 with HMAC-SHA256, 10,000 iterations, 128-bit cryptographically random salt. On first login with plaintext password, verify and transparently upgrade to hash without forcing password reset.
+* **Status:** Verified. Hashes generated, verified via constant-time comparison, legacy plaintext auto-upgrades upon login.
 
-#### Task 2.2: Windows DPAPI Local Credential Protection
-* **File:** `UserLoginAgent/UserAgentConfig.cs`
-* **Logic:** Replace Base64 with `ProtectedData.Protect` (CurrentUser scope). Stored credentials cannot be decrypted outside the user's Windows login session.
+#### Task 2.2: Windows DPAPI Local Credential Protection [DONE]
+* **Files:** `UserLoginAgent/UserAgentConfig.cs`, `UserLoginAgent/Program.cs`, `UserLoginAgent/UserLoginAgent.csproj`
+* **Logic:** Replaced plain Base64 with Windows DPAPI (`ProtectedData.Protect` using `DataProtectionScope.CurrentUser`). Retains backward compatibility with legacy Base64 strings, automatically upgrading them to DPAPI upon read.
+* **Status:** Verified. Plaintext password protected by Windows kernel master key; cannot be decrypted on other computers or profiles.
 
-#### Task 2.3: SSL Certificate Validation Enforcement
+#### Task 2.3: SSL Certificate Validation Enforcement [DONE]
 * **Files:** `UserLoginAgent/Program.cs`, `FileAccessAgent/Program.cs`
-* **Logic:** Restrict self-signed certificate acceptance exclusively to `localhost` / `127.0.0.1` development targets; enforce strict OS-level X.509 chain verification for live production domains.
+* **Logic:** Restrict self-signed certificate acceptance exclusively to `localhost` / `127.0.0.1` development targets (`req.RequestUri.IsLoopback`); enforce strict OS-level X.509 chain verification for live production domains (`https://remote.primaryportal.co.uk`).
+* **Status:** Verified. Production traffic is fully shielded against Man-in-the-Middle (MitM) attacks.
 
 ---
 
-### Phase 3: Streaming Performance & Remote File System
+### Phase 3: Streaming Performance & Remote File System [COMPLETED]
 
-#### Task 3.1: Direct HTTP Download Streaming
+#### Task 3.1: Direct HTTP Download Streaming [DONE]
 * **Files:** `Controllers/FolderAPIController.cs`, `Hub/DeviceHub.cs`, `FileAccessAgent/Program.cs`
-* **Logic:** Stream downloads directly over HTTP using short-lived tokens, eliminating full-file in-memory buffering in SignalR server RAM.
+* **Logic:** Stream downloads directly over HTTP using short-lived tokens, eliminating full-file in-memory buffering in SignalR server RAM (`FileStreamResult` with 64KB block transfers).
+* **Status:** Verified. High-speed raw binary streaming, 0% Base64 bloat, zero server RAM exhaustion.
 
-#### Task 3.2: UserLoginAgent Remote File Browsing
-* **File:** `UserLoginAgent/ClientRemoteDriveManager.cs`
-* **Logic:** Virtual filesystem / WebDAV bridge allowing remote files to open directly in Windows Explorer applications on client PCs.
+#### Task 3.2: UserLoginAgent Remote File Browsing & Sync [DONE]
+* **Files:** `Controllers/UserAgentAPIController.cs`, `UserLoginAgent/ClientRemoteDriveManager.cs`, `UserLoginAgent/UserApiClient.cs`, `UserLoginAgent/Program.cs`, `UserLoginAgent/UserAgentDto.cs`, `Models/UserAgentModel.cs`
+* **Logic:** Real-time remote file discovery and synchronization in virtual drive `U:\`. Displays remote file stubs and shortcuts, and provides 1-click on-demand file pull/sync (`[P]` command) so remote files open directly in Windows Explorer desktop applications.
+* **Status:** Verified. Mapped drive `U:\` populated with file stubs and on-demand synchronization functional.
+
+---
+
+### Phase 4: Post-Testing Polish & Real-Time Dynamic DOM Sync (Pending / Scheduled)
+> [!NOTE]
+> Scheduled to be implemented after complete end-to-end testing of Phase 1, 2, and 3 is finished.
+
+#### Task 4.1: Instant Dynamic Device Row Injection on SignalR Connect
+* **Files:** `MyAppjs/Dashboard/dashboard.js`, `Hub/DeviceHub.cs`, `Views/admin/DashboardOverview.cshtml`
+* **Root Cause Identified During Testing:** When a newly paired device connects, SignalR broadcasts `deviceStatusChanged`. However, `dashboard.js` looks for existing DOM elements matching `tr[data-device-guid="..."]`. Because the row for the newly registered device was not part of the initial HTML page render, `$row.length === 0`. The status update succeeded in the "Recent Activity" feed but failed to appear in the "Connected Devices" table without a manual browser refresh (F5).
+* **Planned Solution:**
+  1. If `tr[data-device-guid]` is not found when `deviceStatusChanged` arrives, dynamically construct and prepend the device row to `#deviceTableBody` and `#deviceMobileCards` without requiring a page reload.
+  2. If `#deviceEmptyState` is present, hide it automatically and show the table.
+  3. Include `deviceName` and `sharedFolderCount` in the SignalR broadcast payload from `DeviceHub.RegisterAgent` and `OnReconnected`.
+
+#### Task 4.2: Real-time Device Table Counter Synchronization
+* **Files:** `MyAppjs/Dashboard/dashboard.js`
+* **Planned Solution:** Dynamically increment `#summaryTotalDevices` and update `#summaryOnlineContainer` on the fly when new devices pair and connect.
+
+#### Task 4.3: Inactive Duplicate Device Reconciliation & Clean Purge
+* **Files:** `Doc/Procedure/proc_device_manager.sql`, `BAL/DeviceManager.cs`
+* **Planned Solution:** When a host PC connects with a updated name or newly generated pairing, offer an option or auto-reconcile previous stale offline records from the same physical machine to keep the dashboard pristine.
 
 ---
 

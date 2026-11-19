@@ -392,6 +392,103 @@ namespace PCAccess.Hubs
 
                 tcs.TrySetResult(result);
             }
+
+            // Also resolve streaming download requests if this was initiated via RequestDownloadStreamAsync
+            if (_pendingDownloadRequests.TryGetValue(requestId, out var dtcs))
+            {
+                dtcs.TrySetResult(new FileTransferResult
+                {
+                    request_id = requestId,
+                    is_success = isSuccess,
+                    error_message = errorMessage,
+                    file_name = fileName,
+                    content_type = contentType,
+                    file_size_bytes = fileSizeBytes
+                });
+            }
+        }
+
+        // ==========================================
+        // TASK 3.1: DIRECT HTTP DOWNLOAD STREAMING
+        // ==========================================
+
+        // Thread-safe map of requestId -> TaskCompletionSource for direct HTTP download streaming
+        private static readonly ConcurrentDictionary<string, TaskCompletionSource<FileTransferResult>> _pendingDownloadRequests =
+            new ConcurrentDictionary<string, TaskCompletionSource<FileTransferResult>>();
+
+        /// <summary>
+        /// WHAT: Dispatches a file download streaming request to a connected PC Agent.
+        /// REASON: Task 3.1 Direct HTTP Download Streaming - Agent streams file directly to server HTTP endpoint
+        /// in 64KB chunks, eliminating SignalR Base64 memory overhead and buffering large files in server RAM.
+        /// </summary>
+        public static async Task<FileTransferResult> RequestDownloadStreamAsync(
+            Guid deviceGuid,
+            string requestId,
+            string downloadToken,
+            string rootLocalPath,
+            string relativePath,
+            int timeoutSeconds = 120)
+        {
+            if (!_deviceConnectionMap.TryGetValue(deviceGuid, out string agentConnectionId) || string.IsNullOrWhiteSpace(agentConnectionId))
+            {
+                return new FileTransferResult
+                {
+                    request_id = requestId,
+                    is_success = false,
+                    error_message = "The target device is offline or disconnected. Please ensure the File Access Agent is running on the host PC."
+                };
+            }
+
+            var tcs = new TaskCompletionSource<FileTransferResult>();
+            _pendingDownloadRequests[requestId] = tcs;
+
+            try
+            {
+                var hubContext = GlobalHost.ConnectionManager.GetHubContext<DeviceHub>();
+                hubContext.Clients.Client(agentConnectionId).streamFileDownload(requestId, downloadToken, rootLocalPath, relativePath);
+
+                var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(TimeSpan.FromSeconds(timeoutSeconds)));
+                if (completedTask == tcs.Task)
+                {
+                    return await tcs.Task;
+                }
+                else
+                {
+                    return new FileTransferResult
+                    {
+                        request_id = requestId,
+                        is_success = false,
+                        error_message = $"Request timed out. The PC Agent took longer than {timeoutSeconds} seconds to stream the file."
+                    };
+                }
+            }
+            finally
+            {
+                _pendingDownloadRequests.TryRemove(requestId, out _);
+            }
+        }
+
+        /// <summary>
+        /// WHAT: Called by PC Agent when direct HTTP download streaming has completed.
+        /// </summary>
+        public void DownloadStreamComplete(string requestId, bool isSuccess, string errorMessage, string fileName, string contentType, long fileSizeBytes)
+        {
+            if (string.IsNullOrWhiteSpace(requestId)) return;
+
+            if (_pendingDownloadRequests.TryGetValue(requestId, out var tcs))
+            {
+                var result = new FileTransferResult
+                {
+                    request_id = requestId,
+                    is_success = isSuccess,
+                    error_message = errorMessage,
+                    file_name = fileName,
+                    content_type = contentType,
+                    file_size_bytes = fileSizeBytes
+                };
+
+                tcs.TrySetResult(result);
+            }
         }
 
         // ==========================================

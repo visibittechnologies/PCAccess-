@@ -408,36 +408,101 @@ namespace PCAccess.Controllers
                     return new HttpStatusCodeResult(503, $"'{folder.device_name}' is currently offline. Please start the File Access Agent on the computer.");
                 }
 
-                // 4. Dispatch chunked file transfer to PC Agent via SignalR
+                // 4. Dispatch direct HTTP streaming file transfer to PC Agent
                 string requestId = "FILE_" + Guid.NewGuid().ToString("N").Substring(0, 12);
-                FileTransferResult result = await DeviceHub.RequestFileTransferAsync(
-                    folder.device_guid,
-                    requestId,
-                    folder.local_path,
-                    safeRelPath,
-                    120 // 120-second timeout for large files
-                );
+                string downloadToken = Guid.NewGuid().ToString("N");
+
+                string tempDownloadsDir = Server.MapPath("~/App_Data/TempDownloads");
+                if (!System.IO.Directory.Exists(tempDownloadsDir))
+                {
+                    System.IO.Directory.CreateDirectory(tempDownloadsDir);
+                }
+                string stagingFilePath = System.IO.Path.Combine(tempDownloadsDir, downloadToken + ".tmp");
+
+                var streamInfo = new DownloadStreamInfo
+                {
+                    DownloadToken = downloadToken,
+                    StagingFilePath = stagingFilePath,
+                    DeviceGuid = folder.device_guid.ToString(),
+                    CompletionSource = new TaskCompletionSource<bool>()
+                };
+                _pendingDownloadStreams[downloadToken] = streamInfo;
+
+                FileTransferResult result;
+                try
+                {
+                    result = await DeviceHub.RequestDownloadStreamAsync(
+                        folder.device_guid,
+                        requestId,
+                        downloadToken,
+                        folder.local_path,
+                        safeRelPath,
+                        120 // 120-second timeout for large files
+                    );
+                }
+                catch
+                {
+                    // Fallback to legacy transfer if needed
+                    result = await DeviceHub.RequestFileTransferAsync(
+                        folder.device_guid,
+                        requestId,
+                        folder.local_path,
+                        safeRelPath,
+                        120
+                    );
+                }
 
                 if (!result.is_success)
                 {
+                    _pendingDownloadStreams.TryRemove(downloadToken, out _);
+                    try { if (System.IO.File.Exists(stagingFilePath)) System.IO.File.Delete(stagingFilePath); } catch { }
                     return new HttpStatusCodeResult(500, result.error_message ?? "File transfer failed.");
                 }
 
-                // 5. Stream assembled file to browser with original filename and content-type
-                string downloadName = result.file_name ?? System.IO.Path.GetFileName(safeRelPath);
-                string mimeType = result.content_type ?? "application/octet-stream";
-                if (string.IsNullOrWhiteSpace(mimeType) || mimeType == "application/octet-stream")
+                // 5. Stream assembled file directly from disk (zero RAM buffering) or legacy fallback
+                if (System.IO.File.Exists(stagingFilePath) && new System.IO.FileInfo(stagingFilePath).Length > 0)
                 {
-                    try
+                    string downloadName = result.file_name ?? streamInfo.FileName ?? System.IO.Path.GetFileName(safeRelPath);
+                    string mimeType = result.content_type ?? streamInfo.ContentType ?? "application/octet-stream";
+                    if (string.IsNullOrWhiteSpace(mimeType) || mimeType == "application/octet-stream")
                     {
-                        mimeType = System.Web.MimeMapping.GetMimeMapping(downloadName);
+                        try
+                        {
+                            mimeType = System.Web.MimeMapping.GetMimeMapping(downloadName);
+                        }
+                        catch { }
                     }
-                    catch { }
-                }
 
-                string disposition = inline ? "inline" : "attachment";
-                Response.AddHeader("Content-Disposition", $"{disposition}; filename=\"{downloadName}\"");
-                return File(result.data, mimeType);
+                    string disposition = inline ? "inline" : "attachment";
+                    Response.AddHeader("Content-Disposition", $"{disposition}; filename=\"{downloadName}\"");
+
+                    _pendingDownloadStreams.TryRemove(downloadToken, out _);
+                    var fileStream = new System.IO.FileStream(stagingFilePath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read | System.IO.FileShare.Delete, 64 * 1024, true);
+                    return new FileStreamResult(fileStream, mimeType);
+                }
+                else if (result.data != null && result.data.Length > 0)
+                {
+                    _pendingDownloadStreams.TryRemove(downloadToken, out _);
+                    string downloadName = result.file_name ?? System.IO.Path.GetFileName(safeRelPath);
+                    string mimeType = result.content_type ?? "application/octet-stream";
+                    if (string.IsNullOrWhiteSpace(mimeType) || mimeType == "application/octet-stream")
+                    {
+                        try
+                        {
+                            mimeType = System.Web.MimeMapping.GetMimeMapping(downloadName);
+                        }
+                        catch { }
+                    }
+
+                    string disposition = inline ? "inline" : "attachment";
+                    Response.AddHeader("Content-Disposition", $"{disposition}; filename=\"{downloadName}\"");
+                    return File(result.data, mimeType);
+                }
+                else
+                {
+                    _pendingDownloadStreams.TryRemove(downloadToken, out _);
+                    return new HttpStatusCodeResult(500, "File content is empty or stream was interrupted.");
+                }
             }
             catch (Exception ex)
             {
@@ -448,6 +513,9 @@ namespace PCAccess.Controllers
         // In-memory token registry for temporary file streaming between Server and Agent
         private static readonly ConcurrentDictionary<string, UploadStreamInfo> _pendingUploadStreams =
             new ConcurrentDictionary<string, UploadStreamInfo>();
+
+        private static readonly ConcurrentDictionary<string, DownloadStreamInfo> _pendingDownloadStreams =
+            new ConcurrentDictionary<string, DownloadStreamInfo>();
 
         /// <summary>
         /// WHAT: Handles secure remote file upload from browser to PC Agent.
@@ -692,6 +760,54 @@ namespace PCAccess.Controllers
             }
         }
 
+        /// <summary>
+        /// WHAT: Receives direct binary file stream from PC Agent over HTTP.
+        /// REASON: Task 3.1 Direct HTTP Download Streaming - Agent streams file chunks directly into
+        /// staging file on server disk without Base64 overhead or buffering in server RAM.
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult> PostDownloadStream(string downloadToken, string deviceGuid, string fileName = null, string contentType = null, long fileSizeBytes = 0)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(downloadToken) || string.IsNullOrWhiteSpace(deviceGuid))
+                {
+                    return new HttpStatusCodeResult(400, "Download token and Device GUID are required.");
+                }
+
+                if (!_pendingDownloadStreams.TryGetValue(downloadToken, out var info))
+                {
+                    return new HttpStatusCodeResult(404, "Download stream not found or expired.");
+                }
+
+                if (!string.Equals(info.DeviceGuid, deviceGuid, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new HttpStatusCodeResult(403, "Access Denied: Device GUID mismatch.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(fileName)) info.FileName = fileName;
+                if (!string.IsNullOrWhiteSpace(contentType)) info.ContentType = contentType;
+                if (fileSizeBytes > 0) info.FileSizeBytes = fileSizeBytes;
+
+                // Stream incoming HTTP request body directly to disk
+                using (var fs = new System.IO.FileStream(info.StagingFilePath, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.None, 64 * 1024, true))
+                {
+                    await Request.InputStream.CopyToAsync(fs, 64 * 1024);
+                }
+
+                info.CompletionSource?.TrySetResult(true);
+                return Json(new { status = "success", message = "Stream received successfully." });
+            }
+            catch (Exception ex)
+            {
+                if (_pendingDownloadStreams.TryGetValue(downloadToken, out var info))
+                {
+                    info.CompletionSource?.TrySetException(ex);
+                }
+                return new HttpStatusCodeResult(500, "Error receiving download stream: " + ex.Message);
+            }
+        }
+
     }
 
     /// <summary>
@@ -703,6 +819,21 @@ namespace PCAccess.Controllers
         public string TempFilePath { get; set; }
         public string DeviceGuid { get; set; }
         public string FileName { get; set; }
+        public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Metadata for a short-lived staging file being streamed from PC Agent over HTTP.
+    /// </summary>
+    public class DownloadStreamInfo
+    {
+        public string DownloadToken { get; set; }
+        public string StagingFilePath { get; set; }
+        public string DeviceGuid { get; set; }
+        public string FileName { get; set; }
+        public string ContentType { get; set; }
+        public long FileSizeBytes { get; set; }
+        public TaskCompletionSource<bool> CompletionSource { get; set; }
         public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
     }
 

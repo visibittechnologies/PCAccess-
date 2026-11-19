@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -31,7 +32,7 @@ namespace FileAccessAgent
         static Program()
         {
 #pragma warning disable SYSLIB0014
-            System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
             System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12 | System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls;
 #pragma warning restore SYSLIB0014
 
@@ -83,6 +84,11 @@ namespace FileAccessAgent
                     case "?":
                         ShowHelp();
                         return;
+
+                    case "reset":
+                    case "r":
+                        HandleResetCommand();
+                        return;
                 }
             }
 
@@ -127,8 +133,87 @@ namespace FileAccessAgent
             Console.WriteLine("  --start       Starts the installed Windows Service");
             Console.WriteLine("  --stop        Stops the running Windows Service");
             Console.WriteLine("  --status      Displays current Windows Service status");
+            Console.WriteLine("  --reset       Cleanly resets agent configs, unmounts R:, and resets to pairing mode");
             Console.WriteLine("  --service     Starts agent in headless Windows Service mode (Used by SCM)");
             Console.WriteLine("  (no args)     Runs interactively in console mode for testing & initial pairing");
+        }
+
+        /// <summary>
+        /// WHAT: Completely resets FileAccessAgent to fresh initial state.
+        /// REASON: Task 1.4 - Allows user to run 'FileAccessAgent.exe --reset' from CMD/PowerShell
+        /// to unmount virtual drive R:, terminate running instances, clear pairing token,
+        /// and purge local staging folder so that a fresh pairing code can be entered.
+        /// </summary>
+        private static void HandleResetCommand()
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(@"
+========================================================================
+             PCAccess FileAccessAgent - Clean Reset Engine
+========================================================================
+");
+            Console.ResetColor();
+
+            Console.WriteLine("[1/4] Stopping background service and agent processes...");
+            try
+            {
+                ServiceManager.StopService();
+            }
+            catch { }
+
+            int currentPid = Process.GetCurrentProcess().Id;
+            var runningAgents = Process.GetProcessesByName("FileAccessAgent")
+                                       .Where(p => p.Id != currentPid)
+                                       .ToList();
+            foreach (var p in runningAgents)
+            {
+                try { p.Kill(); } catch { }
+            }
+
+            Console.WriteLine("[2/4] Unmounting Virtual Drive R:...");
+            try
+            {
+                string drive = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "R:" : _config.DriveLetter;
+                RemoteDriveManager.UnmountDrive(drive);
+            }
+            catch { }
+
+            Console.WriteLine("[3/4] Resetting agent_config.json to fresh pairing state...");
+            try
+            {
+                _config.DeviceGuid = Guid.Empty;
+                _config.DeviceToken = "";
+                _config.Save();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("  [WARN] Failed to write agent_config.json: " + ex.Message);
+            }
+
+            Console.WriteLine("[4/4] Purging local staging directory...");
+            try
+            {
+                string stagingDir = RemoteDriveManager.GetStagingDirectory();
+                if (Directory.Exists(stagingDir))
+                {
+                    Directory.Delete(stagingDir, true);
+                }
+            }
+            catch { }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(@"
+========================================================================
+ [SUCCESS] FileAccessAgent has been completely reset!
+ - Drive R: unmounted.
+ - Pairing tokens and device GUID wiped.
+ - Staging files cleared.
+
+ You can now run 'run.bat' or '.\FileAccessAgent.exe' to enter a fresh
+ 6-digit pairing code from your Web Dashboard!
+========================================================================
+");
+            Console.ResetColor();
         }
 
         private static void RunAsWindowsService()
@@ -143,9 +228,9 @@ namespace FileAccessAgent
         /// </summary>
         public static async Task StartAgentAsync(CancellationToken cancellationToken)
         {
-            // Bypass SSL certificate validation for localhost development and internal connections
+            // Configure TLS security and selective validation (Task 2.3: strict CA for production, dev localhost allowed)
 #pragma warning disable SYSLIB0014
-            System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
             System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12 | System.Net.SecurityProtocolType.Tls13;
 #pragma warning restore SYSLIB0014
             // 1. Load or initialize configuration
@@ -251,12 +336,10 @@ namespace FileAccessAgent
             }
 
             // PC Name prompt
-            Console.Write($"Enter Device Name (default: {_config.DeviceName}): ");
+            string defaultDeviceName = !string.IsNullOrWhiteSpace(_config.DeviceName) ? _config.DeviceName : Environment.MachineName;
+            Console.Write($"Enter Device Name (default: {defaultDeviceName}): ");
             string? nameInput = Console.ReadLine()?.Trim();
-            if (!string.IsNullOrWhiteSpace(nameInput))
-            {
-                _config.DeviceName = nameInput;
-            }
+            _config.DeviceName = !string.IsNullOrWhiteSpace(nameInput) ? nameInput : defaultDeviceName;
 
             // Pairing Code prompt
             Console.ForegroundColor = ConsoleColor.Green;
@@ -270,8 +353,12 @@ namespace FileAccessAgent
                 return false;
             }
 
-            // Generate permanent GUID for this PC
-            _config.DeviceGuid = Guid.NewGuid();
+            // Resolve permanent hardware GUID for this PC (Task 1.1)
+            // REASON: Guarantees stable machine identity across resets so server preserves existing shared folders
+            if (_config.DeviceGuid == Guid.Empty)
+            {
+                _config.DeviceGuid = AgentConfig.GetPermanentMachineGuid();
+            }
 
             AgentLogger.Info($"[REGISTER] Registering {_config.DeviceName} ({_config.DeviceGuid}) with {_config.ServerUrl}...");
 
@@ -375,6 +462,13 @@ namespace FileAccessAgent
             _deviceHub.On<string, string, string>("readFile", async (requestId, rootPath, relativePath) =>
             {
                 await HandleReadFileAsync(requestId, rootPath, relativePath);
+            });
+
+            // WHAT: Task 3.1 - Direct HTTP Download Streaming listener
+            // REASON: Streams file directly to server HTTP endpoint in binary 64KB blocks (0% Base64 overhead, no server RAM exhaustion)
+            _deviceHub.On<string, string, string, string>("streamFileDownload", async (requestId, downloadToken, rootPath, relativePath) =>
+            {
+                await HandleStreamFileDownloadAsync(requestId, downloadToken, rootPath, relativePath);
             });
 
             // WHAT: Step 6 - Listen for file upload requests from server/dashboard
@@ -971,6 +1065,107 @@ namespace FileAccessAgent
             }
         }
 
+        /// <summary>
+        /// WHAT: Handles direct HTTP streaming of a requested file to the server.
+        /// REASON: Task 3.1 Direct HTTP Download Streaming - Streams raw binary file data directly
+        /// to the server over HTTP in 64KB blocks, eliminating 33% Base64 overhead and server RAM exhaustion.
+        /// </summary>
+        private static async Task HandleStreamFileDownloadAsync(string requestId, string downloadToken, string rootPath, string relativePath)
+        {
+            const long MaxFileSizeBytes = 500L * 1024 * 1024; // 500 MB limit
+            bool isSuccess = false;
+            string errorMessage = "";
+            string fileName = "";
+            string contentType = "application/octet-stream";
+            long fileSizeBytes = 0;
+
+            AgentLogger.Info($"[FILE:STREAM_REQUEST] RequestId={requestId} | Token={downloadToken} | RelPath={relativePath}");
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(relativePath) || relativePath.Contains(".."))
+                {
+                    errorMessage = "Access Denied: Path traversal sequences ('..') are prohibited.";
+                }
+                else
+                {
+                    string normalizedRoot = Path.GetFullPath(rootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                    string safeRelPath = relativePath.Trim().TrimStart('/', '\\').Replace('/', Path.DirectorySeparatorChar);
+                    string fullPath = Path.GetFullPath(Path.Combine(normalizedRoot, safeRelPath));
+
+                    if (!fullPath.StartsWith(normalizedRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                        && !fullPath.Equals(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+                    {
+                        errorMessage = "Access Denied: Requested path is outside configured root directory.";
+                    }
+                    else if (!File.Exists(fullPath))
+                    {
+                        errorMessage = $"File not found: '{Path.GetFileName(fullPath)}'";
+                    }
+                    else
+                    {
+                        var fileInfo = new FileInfo(fullPath);
+                        if ((fileInfo.Attributes & FileAttributes.Hidden) != 0 || (fileInfo.Attributes & FileAttributes.System) != 0)
+                        {
+                            errorMessage = "Access Denied: Cannot download system or hidden files.";
+                        }
+                        else if (fileInfo.Length > MaxFileSizeBytes)
+                        {
+                            errorMessage = $"File too large: {(fileInfo.Length / (1024.0 * 1024.0)):F1} MB. Maximum allowed is 500 MB.";
+                        }
+                        else
+                        {
+                            fileName = fileInfo.Name;
+                            fileSizeBytes = fileInfo.Length;
+                            contentType = ResolveContentType(fileInfo.Extension.ToLowerInvariant());
+
+                            // Stream file directly to server HTTP endpoint
+                            string streamUrl = $"{_config.ServerUrl.TrimEnd('/')}/FolderAPI/PostDownloadStream?downloadToken={Uri.EscapeDataString(downloadToken)}&deviceGuid={_config.DeviceGuid}&fileName={Uri.EscapeDataString(fileName)}&contentType={Uri.EscapeDataString(contentType)}&fileSizeBytes={fileSizeBytes}";
+
+                            using (var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, true))
+                            using (var content = new System.Net.Http.StreamContent(fileStream, 64 * 1024))
+                            {
+                                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+                                var postResponse = await _httpClient.PostAsync(streamUrl, content);
+                                if (postResponse.IsSuccessStatusCode)
+                                {
+                                    isSuccess = true;
+                                    AgentLogger.Success($"[FILE:STREAM_SUCCESS] Streamed '{fileName}' ({FormatFileSize(fileSizeBytes)}) directly to server.");
+                                }
+                                else
+                                {
+                                    errorMessage = $"Server rejected stream: HTTP {(int)postResponse.StatusCode} ({postResponse.ReasonPhrase})";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                isSuccess = false;
+                errorMessage = "Error during file streaming: " + ex.Message;
+                AgentLogger.Error($"[FILE:STREAM_ERROR] {errorMessage}");
+            }
+
+            // Signal completion to DeviceHub
+            if (_deviceHub != null)
+            {
+                try
+                {
+                    await _deviceHub.Invoke("DownloadStreamComplete", requestId, isSuccess, errorMessage, fileName, contentType, fileSizeBytes);
+                }
+                catch
+                {
+                    try
+                    {
+                        await _deviceHub.Invoke("FileTransferComplete", requestId, isSuccess, errorMessage, fileName, contentType, fileSizeBytes);
+                    }
+                    catch { }
+                }
+            }
+        }
+
 
         /// <summary>
         /// WHAT: Handles a file upload streamed from the web server into a local shared folder.
@@ -1267,6 +1462,49 @@ namespace FileAccessAgent
             if (bytes < 1024 * 1024) return (bytes / 1024.0).ToString("F1") + " KB";
             if (bytes < 1024 * 1024 * 1024) return (bytes / (1024.0 * 1024.0)).ToString("F1") + " MB";
             return (bytes / (1024.0 * 1024.0 * 1024.0)).ToString("F2") + " GB";
+        }
+
+        /// <summary>
+        /// Validates SSL/TLS certificates selectively.
+        /// WHAT: Allows self-signed certificates ONLY for local development (loopback/localhost).
+        /// REASON: Task 2.3 - Prevents Man-in-the-Middle (MitM) attacks against production domains
+        /// (e.g. remote.primaryportal.co.uk) while preserving effortless local dev testing on https://localhost:44355.
+        /// </summary>
+        private static bool ValidateServerCertificate(
+            object sender, 
+            System.Security.Cryptography.X509Certificates.X509Certificate cert, 
+            System.Security.Cryptography.X509Certificates.X509Chain chain, 
+            System.Net.Security.SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == System.Net.Security.SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            // Allow self-signed dev certificate ONLY if connecting to localhost / loopback
+            if (sender is System.Net.HttpWebRequest req && req.RequestUri != null)
+            {
+                if (req.RequestUri.IsLoopback ||
+                    string.Equals(req.RequestUri.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+                    req.RequestUri.Host == "127.0.0.1")
+                {
+                    return true;
+                }
+            }
+
+            if (_config != null && !string.IsNullOrWhiteSpace(_config.ServerUrl))
+            {
+                if (Uri.TryCreate(_config.ServerUrl, UriKind.Absolute, out Uri uri))
+                {
+                    if (uri.IsLoopback || string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase) || uri.Host == "127.0.0.1")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            AgentLogger.Warn($"[SSL SECURITY] Blocked untrusted SSL certificate for remote host: {sslPolicyErrors}");
+            return false;
         }
     }
 }

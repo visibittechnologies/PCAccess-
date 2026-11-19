@@ -29,7 +29,7 @@ namespace UserLoginAgent
             Console.Title = "PCAccess - User Login Agent (Remote Drive)";
             Console.OutputEncoding = Encoding.UTF8;
 
-            System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
             System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12 | System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls;
 
             _config = UserAgentConfig.Load();
@@ -56,6 +56,11 @@ namespace UserLoginAgent
                     case "h":
                     case "?":
                         PrintCliHelp();
+                        return;
+
+                    case "reset":
+                    case "r":
+                        HandleResetCommand();
                         return;
                 }
             }
@@ -95,7 +100,7 @@ namespace UserLoginAgent
                                        .ToList();
 
             bool isProcessRunning = runningAgents.Count > 0;
-            string driveLetter = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "R:" : _config.DriveLetter;
+            string driveLetter = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "U:" : _config.DriveLetter;
             bool isDriveMounted = Directory.Exists(driveLetter.TrimEnd('\\') + @"\");
 
             Console.WriteLine($" Agent Process     : {(isProcessRunning ? "[RUNNING] (PID: " + string.Join(", ", runningAgents.Select(p => p.Id)) + ")" : "[STOPPED] (Not Running)")}");
@@ -119,7 +124,7 @@ namespace UserLoginAgent
             Console.ResetColor();
 
             // 1. Unmount drive
-            string drive = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "R:" : _config.DriveLetter;
+            string drive = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "U:" : _config.DriveLetter;
             ClientRemoteDriveManager.UnmountDrive(drive);
 
             // 2. Kill running processes if any
@@ -157,11 +162,78 @@ namespace UserLoginAgent
 PCAccess User Login Agent - Command Line Usage:
 ------------------------------------------------
   UserLoginAgent.exe             Start interactive desktop login agent
-  UserLoginAgent.exe status      Check if agent is running and drive R: is mounted
-  UserLoginAgent.exe stop        Stop running agent and unmount Remote Drive (R:)
+  UserLoginAgent.exe status      Check if agent is running and drive U: is mounted
+  UserLoginAgent.exe stop        Stop running agent and unmount User Remote Drive (U:)
   UserLoginAgent.exe logout      Same as stop (unmounts drive and logs out)
+  UserLoginAgent.exe reset       Cleanly resets agent state, unmounts drive, and clears credentials
   UserLoginAgent.exe help        Show this help message
 ");
+        }
+
+        /// <summary>
+        /// WHAT: Cleanly resets UserLoginAgent state, unmounts user drive, and clears credentials.
+        /// REASON: Task 1.4 - Allows user to run 'UserLoginAgent.exe reset' to terminate agent,
+        /// unmount drive U:, and clear saved credentials so a fresh login prompt appears.
+        /// </summary>
+        private static void HandleResetCommand()
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(@"
+========================================================================
+             PCAccess UserLoginAgent - Clean Reset Engine
+========================================================================
+");
+            Console.ResetColor();
+
+            Console.WriteLine("[1/3] Stopping running UserLoginAgent processes...");
+            int currentPid = Process.GetCurrentProcess().Id;
+            var runningAgents = Process.GetProcessesByName("UserLoginAgent")
+                                       .Where(p => p.Id != currentPid)
+                                       .ToList();
+            foreach (var p in runningAgents)
+            {
+                try { p.Kill(); } catch { }
+            }
+
+            Console.WriteLine("[2/3] Unmounting User Virtual Drive (U: & R:)...");
+            try
+            {
+                string drive = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "U:" : _config.DriveLetter;
+                ClientRemoteDriveManager.UnmountDrive(drive);
+                ClientRemoteDriveManager.UnmountDrive("R:");
+            }
+            catch { }
+
+            Console.WriteLine("[3/3] Clearing saved credentials and staging files...");
+            try
+            {
+                _config.UsernameOrEmail = "";
+                _config.ClearSavedPassword();
+                _config.DriveLetter = "U:";
+                _config.DriveLabel = "User Remote Drive";
+                _config.Save();
+
+                string stagingDir = ClientRemoteDriveManager.GetStagingDirectory();
+                if (Directory.Exists(stagingDir))
+                {
+                    Directory.Delete(stagingDir, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("  [WARN] Cleanup notice: " + ex.Message);
+            }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(@"
+========================================================================
+ [SUCCESS] UserLoginAgent has been completely reset!
+ - User Drive unmounted cleanly.
+ - Saved credentials wiped.
+ - Fresh login prompt will appear on next run.
+========================================================================
+");
+            Console.ResetColor();
         }
 
         #endregion
@@ -204,7 +276,7 @@ PCAccess User Login Agent - Command Line Usage:
             string username = _config.UsernameOrEmail;
             string password = "";
 
-            bool hasSaved = !string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(_config.SavedPasswordBase64);
+            bool hasSaved = !string.IsNullOrWhiteSpace(username) && _config.HasSavedPassword;
 
             if (hasSaved)
             {
@@ -219,12 +291,8 @@ PCAccess User Login Agent - Command Line Usage:
 
                 if (string.IsNullOrWhiteSpace(choice) || choice.Trim().ToLower() != "c")
                 {
-                    try
-                    {
-                        byte[] bytes = Convert.FromBase64String(_config.SavedPasswordBase64);
-                        password = Encoding.UTF8.GetString(bytes);
-                    }
-                    catch
+                    password = _config.GetSavedPassword();
+                    if (string.IsNullOrEmpty(password))
                     {
                         hasSaved = false;
                     }
@@ -232,7 +300,7 @@ PCAccess User Login Agent - Command Line Usage:
                 else
                 {
                     hasSaved = false;
-                    _config.SavedPasswordBase64 = "";
+                    _config.ClearSavedPassword();
                     _config.Save();
                 }
             }
@@ -292,16 +360,11 @@ PCAccess User Login Agent - Command Line Usage:
 
             if (_config.RememberCredentials)
             {
-                try
-                {
-                    byte[] bytes = Encoding.UTF8.GetBytes(password);
-                    _config.SavedPasswordBase64 = Convert.ToBase64String(bytes);
-                }
-                catch { }
+                _config.SetSavedPassword(password);
             }
             else
             {
-                _config.SavedPasswordBase64 = "";
+                _config.ClearSavedPassword();
             }
 
             _config.LastLoginDate = DateTime.Now;
@@ -361,7 +424,7 @@ PCAccess User Login Agent - Command Line Usage:
             try
             {
                 UserAgentLogger.Drive($"Mounting virtual drive {_config.DriveLetter} (\"{_config.DriveLabel}\")...");
-                bool ok = ClientRemoteDriveManager.MountDrive(_config.DriveLetter, _config.DriveLabel, user.folders);
+                bool ok = ClientRemoteDriveManager.MountDrive(_config.DriveLetter, _config.DriveLabel, user.folders, _config.ServerUrl, user.user_id, user.session_token);
 
                 if (ok)
                 {
@@ -412,6 +475,13 @@ PCAccess User Login Agent - Command Line Usage:
                     {
                         ShowInlineStatus();
                     }
+                    // P = Pull / Sync remote files
+                    else if (key.Key == ConsoleKey.P)
+                    {
+                        Console.WriteLine();
+                        await ClientRemoteDriveManager.SyncAllRemoteFilesAsync(_currentUser, _config.ServerUrl, _config.DriveLetter);
+                        PrintCommandsMenu();
+                    }
                     // O = Open Remote Drive in Explorer
                     else if (key.Key == ConsoleKey.O)
                     {
@@ -455,7 +525,7 @@ PCAccess User Login Agent - Command Line Usage:
                         Shutdown();
                         _hasShutdown = false; // Reset so next session can unmount when needed
 
-                        _config.SavedPasswordBase64 = "";
+                        _config.ClearSavedPassword();
                         _config.UsernameOrEmail = "";
                         _config.Save();
 
@@ -474,12 +544,14 @@ PCAccess User Login Agent - Command Line Usage:
 
         private static void PrintCommandsMenu()
         {
+            string drive = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "U:" : _config.DriveLetter;
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("\n------------------------------------------------------------------------");
-            Console.WriteLine(" [STATUS] User Session Active & Remote Drive (R:) Mounted.");
+            Console.WriteLine($" [STATUS] User Session Active & Remote Drive ({drive}) Mounted.");
             Console.WriteLine(" Commands:");
             Console.WriteLine("   [S] - Status: View session, drive, and connection health");
-            Console.WriteLine("   [O] - Open: Browse Remote Drive (R:) in Windows Explorer");
+            Console.WriteLine($"   [O] - Open: Browse Remote Drive ({drive}) in Windows Explorer");
+            Console.WriteLine($"   [P] - Pull / Sync: Download all remote files into {drive} for offline work");
             Console.WriteLine("   [R] - Refresh: Re-fetch shared folders from server");
             Console.WriteLine("   [C] - Switch User: Clear credentials and log in as another user");
             Console.WriteLine("   [L] or [Q] - Logout: Stop agent, unmount drive, and Exit");
@@ -489,7 +561,7 @@ PCAccess User Login Agent - Command Line Usage:
 
         private static void ShowInlineStatus()
         {
-            string drive = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "R:" : _config.DriveLetter;
+            string drive = string.IsNullOrWhiteSpace(_config.DriveLetter) ? "U:" : _config.DriveLetter;
             bool driveActive = Directory.Exists(drive.TrimEnd('\\') + @"\");
 
             Console.WriteLine();
@@ -509,16 +581,50 @@ PCAccess User Login Agent - Command Line Usage:
 
         private static string GetSavedPassword()
         {
-            try
+            return _config?.GetSavedPassword() ?? "";
+        }
+
+        /// <summary>
+        /// Validates SSL/TLS certificates selectively.
+        /// WHAT: Allows self-signed certificates ONLY for local development (loopback/localhost).
+        /// REASON: Task 2.3 - Prevents Man-in-the-Middle (MitM) attacks against production domains
+        /// (e.g. remote.primaryportal.co.uk) while preserving effortless local dev testing on https://localhost:44355.
+        /// </summary>
+        private static bool ValidateServerCertificate(
+            object sender, 
+            System.Security.Cryptography.X509Certificates.X509Certificate cert, 
+            System.Security.Cryptography.X509Certificates.X509Chain chain, 
+            System.Net.Security.SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == System.Net.Security.SslPolicyErrors.None)
             {
-                if (!string.IsNullOrWhiteSpace(_config.SavedPasswordBase64))
+                return true;
+            }
+
+            // Allow self-signed dev certificate ONLY if connecting to localhost / loopback
+            if (sender is System.Net.HttpWebRequest req && req.RequestUri != null)
+            {
+                if (req.RequestUri.IsLoopback ||
+                    string.Equals(req.RequestUri.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+                    req.RequestUri.Host == "127.0.0.1")
                 {
-                    byte[] bytes = Convert.FromBase64String(_config.SavedPasswordBase64);
-                    return Encoding.UTF8.GetString(bytes);
+                    return true;
                 }
             }
-            catch { }
-            return "";
+
+            if (_config != null && !string.IsNullOrWhiteSpace(_config.ServerUrl))
+            {
+                if (Uri.TryCreate(_config.ServerUrl, UriKind.Absolute, out Uri uri))
+                {
+                    if (uri.IsLoopback || string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase) || uri.Host == "127.0.0.1")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            UserAgentLogger.Warn($"[SSL SECURITY] Blocked untrusted SSL certificate for remote host: {sslPolicyErrors}");
+            return false;
         }
 
         private static void Shutdown()

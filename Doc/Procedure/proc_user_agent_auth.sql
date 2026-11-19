@@ -97,20 +97,29 @@ BEGIN
         END
 
         -- ---------------------------------------------------------------------
-        -- 3. Password Verification
+        -- 3. Password Verification (Task 2.1 PBKDF2 & Plaintext Auto-Upgrade)
         -- ---------------------------------------------------------------------
-        IF @actual_pass <> @password
+        -- If password is not yet hashed with PBKDF2, verify legacy plaintext match in SQL.
+        -- If already hashed ($pbkdf2-sha256$...), C# BAL verifies via SlowEquals and salt.
+        IF (@actual_pass NOT LIKE '$pbkdf2%')
         BEGIN
-            SET @status = 'failed';
-            SET @msg = 'Invalid password.';
-            RETURN;
+            IF (@actual_pass <> @password)
+            BEGIN
+                SET @status = 'failed';
+                SET @msg = 'Invalid password.';
+                RETURN;
+            END
         END
 
-        -- Determine role name strictly: user_type_id = 1 is Admin, user_type_id = 2 is User
+        -- Determine role name strictly from tbl_user_type with fallbacks (Task 1.5)
         SELECT TOP 1 @role_name = user_type FROM tbl_user_type WHERE user_type_id = @user_type_id;
-        IF @role_name IS NULL OR @role_name = '' OR @user_type_id = 2 OR @user_type_id <> 1
+        IF @role_name IS NULL OR @role_name = ''
         BEGIN
-            SET @role_name = CASE WHEN @user_type_id = 1 THEN 'Admin' ELSE 'User' END;
+            SET @role_name = CASE 
+                WHEN @user_type_id = 1 THEN 'Admin' 
+                WHEN @user_type_id = 2 THEN 'Subadmin' 
+                ELSE 'User' 
+            END;
         END
 
         -- ---------------------------------------------------------------------
@@ -123,6 +132,7 @@ BEGIN
             @email          AS email,
             @user_type_id   AS user_type_id,
             @role_name      AS role_name,
+            @actual_pass    AS stored_password,
             NEWID()         AS session_token;
 
         -- ---------------------------------------------------------------------

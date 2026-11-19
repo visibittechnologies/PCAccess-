@@ -32,8 +32,9 @@ BEGIN
     /* =====================================================
        STEP 1 : USER EXIST CHECK (PASSWORD KE BINA)
     ===================================================== */
-    SELECT @user_id = tu.user_id,@isActive = tu.[status] FROM tbl_user tu
-        WHERE tu.[user_name] = @username;
+    SELECT @user_id = tu.user_id, @user_type_id = ISNULL(tu.user_type_id, 2), @isActive = tu.[status] 
+    FROM tbl_user tu
+    WHERE tu.[user_name] = @username;
 
     IF @user_id IS NULL
     BEGIN
@@ -48,14 +49,20 @@ BEGIN
     END
 
     /* =====================================================
-       STEP 2 : PASSWORD CHECK
+       STEP 2 : PASSWORD CHECK (Task 2.1 PBKDF2 & Plaintext)
     ===================================================== */
-    IF NOT EXISTS (
-        SELECT 1  FROM tbl_user  WHERE user_id = @user_id AND [password] = @password
-    )
+    DECLARE @actual_pass NVARCHAR(MAX) = NULL;
+    SELECT @actual_pass = tu.[password] FROM tbl_user tu WHERE tu.user_id = @user_id;
+
+    -- If password is not yet hashed with PBKDF2, verify legacy plaintext match
+    -- If already hashed with PBKDF2 ($pbkdf2-sha256$...), the C# BAL layer performs constant-time cryptographic verification
+    IF (@actual_pass NOT LIKE '$pbkdf2%')
     BEGIN
-        SELECT @status = 'failed', @msg = 'Invalid password';
-        RETURN;
+        IF (@actual_pass <> @password)
+        BEGIN
+            SELECT @status = 'failed', @msg = 'Invalid password';
+            RETURN;
+        END
     END
 
     /* =====================================================
@@ -64,9 +71,9 @@ BEGIN
 	IF @user_type_id <> 1
 	BEGIN
 		SELECT 
-			u.user_id, u.user_type_id, u.user_name, v.user_type,u.name, u.phone_no, u.email, u.status,u.password, ud.profile_photo, v.module_url AS url
+			u.user_id, u.user_type_id, u.user_name, v.user_type,u.name, u.phone_no, u.email, u.status,u.password, v.module_url AS url
 		   FROM tbl_user u INNER JOIN tbl_user_type v  ON v.user_type_id = u.user_type_id
-		   LEFT JOIN  tbl_user_documents ud ON ud.user_id = u.user_id WHERE u.user_id = @user_id
+		  
 		   AND u.status = 'Active';
 		  SELECT @status = 'success', @msg = '';
 		RETURN;
@@ -74,9 +81,9 @@ BEGIN
 	ELSE
 	BEGIN
 		SELECT 
-			u.user_id, u.user_type_id, u.user_name, v.user_type,u.name, u.phone_no, u.email, u.status,u.password, ud.profile_photo, v.module_url AS url
+			u.user_id, u.user_type_id, u.user_name, v.user_type,u.name, u.phone_no, u.email, u.status,u.password, v.module_url AS url
 		    FROM tbl_user u INNER JOIN tbl_user_type v 	ON v.user_type_id = u.user_type_id
-			LEFT JOIN  tbl_user_documents ud ON ud.user_id = u.user_id
+			
 		    WHERE u.user_id = @user_id;
 		  SELECT @status = 'success', @msg = '';
 		RETURN;

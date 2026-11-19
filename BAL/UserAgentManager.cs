@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using PCAccess.DAL;
 using PCAccess.Models;
+using PCAccess.MyFun;
 
 namespace PCAccess.BAL
 {
@@ -67,12 +68,32 @@ namespace PCAccess.BAL
                 if (status == "success" && ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
                 {
                     DataRow userRow = ds.Tables[0].Rows[0];
+                    long userId = userRow["user_id"] != DBNull.Value ? Convert.ToInt64(userRow["user_id"]) : 0;
+                    string storedPassword = userRow.Table.Columns.Contains("stored_password") && userRow["stored_password"] != DBNull.Value 
+                        ? userRow["stored_password"].ToString() 
+                        : "";
+
+                    // Cryptographic validation (PBKDF2 HMAC-SHA256 or legacy plaintext)
+                    bool isValid = PasswordSecurity.VerifyPassword(password, storedPassword, out bool needsUpgrade);
+                    if (!isValid)
+                    {
+                        status = "failed";
+                        msg = "Invalid password.";
+                        return null;
+                    }
+
+                    // Transparent auto-upgrade of plaintext to PBKDF2 hash
+                    if (needsUpgrade && userId > 0)
+                    {
+                        PasswordSecurity.UpgradeUserPassword(userId, password);
+                    }
+
                     int userTypeId = userRow["user_type_id"] != DBNull.Value ? Convert.ToInt32(userRow["user_type_id"]) : 2;
                     string roleName = userTypeId == 1 ? "Admin" : "User";
 
                     var response = new UserAgentLoginResponse
                     {
-                        user_id = userRow["user_id"] != DBNull.Value ? Convert.ToInt64(userRow["user_id"]) : 0,
+                        user_id = userId,
                         user_name = userRow["user_name"] != DBNull.Value ? userRow["user_name"].ToString() : "",
                         name = userRow["name"] != DBNull.Value ? userRow["name"].ToString() : "",
                         email = userRow["email"] != DBNull.Value ? userRow["email"].ToString() : "",

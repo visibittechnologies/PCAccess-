@@ -38,6 +38,13 @@ namespace PCAccess.BAL
 
             try
             {
+                // Task 2.1: Automatically hash plaintext passwords with PBKDF2 HMAC-SHA256
+                string passToSave = model.password;
+                if (!string.IsNullOrEmpty(passToSave) && !passToSave.StartsWith("$pbkdf2-sha256$"))
+                {
+                    passToSave = PasswordSecurity.HashPassword(passToSave);
+                }
+
                 SqlParameter[] parameters =
                 {
             new SqlParameter("@flag", flag),
@@ -48,7 +55,7 @@ namespace PCAccess.BAL
                 string.IsNullOrEmpty(model.username) ? (object)DBNull.Value : model.username),
 
             new SqlParameter("@password",
-                string.IsNullOrEmpty(model.password) ? (object)DBNull.Value : model.password),
+                string.IsNullOrEmpty(passToSave) ? (object)DBNull.Value : passToSave),
 
             new SqlParameter("@name",
                 string.IsNullOrEmpty(model.name) ? (object)DBNull.Value : model.name),

@@ -2,8 +2,8 @@
   "ServerUrl": "https://localhost:44355",
   "UsernameOrEmail": "",
   "SavedPasswordBase64": "",
-  "DriveLetter": "R:",
-  "DriveLabel": "Remote Drive",
+  "DriveLetter": "U:",
+  "DriveLabel": "User Remote Drive",
   "RememberCredentials": true,
   "LastLoginDate": "0001-01-01T00:00:00"
 }

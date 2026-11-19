@@ -64,9 +64,14 @@ namespace PCAccess.Controllers
         {
             try
             {
-                if (model == null || string.IsNullOrWhiteSpace(model.pairing_code) || model.device_guid == Guid.Empty || string.IsNullOrWhiteSpace(model.device_name))
+                if (model == null || string.IsNullOrWhiteSpace(model.pairing_code) || model.device_guid == Guid.Empty)
                 {
                     return Json(new { status = "error", message = "Invalid registration parameters." }, JsonRequestBehavior.AllowGet);
+                }
+
+                if (string.IsNullOrWhiteSpace(model.device_name))
+                {
+                    model.device_name = Environment.MachineName;
                 }
 
                 string status, msg;

@@ -38,7 +38,7 @@ namespace UserLoginAgent
 
         private static readonly object _syncLock = new object();
         private static bool _isMounted = false;
-        private static string _currentDriveLetter = "R:";
+        private static string _currentDriveLetter = "U:";
 
         public static string GetStagingDirectory()
         {
@@ -58,17 +58,23 @@ namespace UserLoginAgent
 
         private static string NormalizeDriveLetter(string driveLetter)
         {
-            if (string.IsNullOrWhiteSpace(driveLetter)) return "R:";
+            if (string.IsNullOrWhiteSpace(driveLetter)) return "U:";
             string clean = driveLetter.Trim().ToUpperInvariant();
             if (clean.EndsWith("\\")) clean = clean.TrimEnd('\\');
             if (!clean.EndsWith(":")) clean += ":";
-            return clean.Length == 2 && char.IsLetter(clean[0]) ? clean : "R:";
+            return clean.Length == 2 && char.IsLetter(clean[0]) ? clean : "U:";
         }
 
         /// <summary>
         /// Mounts the virtual drive letter and populates it with all permitted shared folders.
         /// </summary>
-        public static bool MountDrive(string driveLetter, string driveLabel, List<UserAgentFolderDto> folders)
+        public static bool MountDrive(
+            string driveLetter, 
+            string driveLabel, 
+            List<UserAgentFolderDto> folders,
+            string serverUrl = null,
+            long userId = 0,
+            string sessionToken = null)
         {
             lock (_syncLock)
             {
@@ -87,7 +93,7 @@ namespace UserLoginAgent
                     UserAgentLogger.Drive($"Preparing {driveLetter} (\"{driveLabel}\") with {folders.Count} shared folders...");
 
                     // 1. Sync folders inside staging directory
-                    SyncFoldersInternal(stagingDir, folders);
+                    SyncFoldersInternal(stagingDir, folders, serverUrl, userId, sessionToken);
 
                     // 2. Unmount any stale mapping first
                     UnmountDriveLetterInternal(driveLetter, stagingDir);
@@ -161,7 +167,12 @@ namespace UserLoginAgent
 
         #region Internal Helpers
 
-        private static void SyncFoldersInternal(string stagingDir, List<UserAgentFolderDto> folders)
+        private static void SyncFoldersInternal(
+            string stagingDir, 
+            List<UserAgentFolderDto> folders,
+            string serverUrl = null,
+            long userId = 0,
+            string sessionToken = null)
         {
             folders = folders ?? new List<UserAgentFolderDto>();
             var activeFolderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -192,7 +203,7 @@ namespace UserLoginAgent
                         Directory.CreateDirectory(targetDir);
                     }
 
-                    // Write folder metadata info file
+                    // 1. Write folder metadata info file
                     try
                     {
                         string infoPath = Path.Combine(targetDir, "README_Folder_Details.txt");
@@ -209,10 +220,136 @@ namespace UserLoginAgent
                                              $"===============================================================\r\n" +
                                              $"This folder is connected live to {folder.device_name}.\r\n";
                         File.WriteAllText(infoPath, infoContent);
+
+                        // 2. Write Windows Web Shortcut to browse files online directly
+                        if (!string.IsNullOrWhiteSpace(serverUrl))
+                        {
+                            string urlPath = Path.Combine(targetDir, "Open_In_Browser.url");
+                            string urlContent = $"[InternetShortcut]\r\nURL={serverUrl.TrimEnd('/')}/Admin/FileBrowser?folderGuid={folder.folder_guid}\r\nIconIndex=0\r\n";
+                            File.WriteAllText(urlPath, urlContent);
+                        }
+
+                        // 3. Task 3.2: If device is online, discover remote files and populate file stubs
+                        if (folder.is_device_online && !string.IsNullOrWhiteSpace(serverUrl) && userId > 0)
+                        {
+                            PopulateRemoteFolderItems(targetDir, folder, serverUrl, userId, sessionToken);
+                        }
                     }
                     catch { }
                 }
             }
+        }
+
+        private static void PopulateRemoteFolderItems(string targetDir, UserAgentFolderDto folder, string serverUrl, long userId, string sessionToken)
+        {
+            try
+            {
+                var task = UserApiClient.GetFolderContentsAsync(serverUrl, userId, sessionToken, folder.folder_guid.ToString(), "");
+                task.Wait(4000); // Fast initial discovery budget
+                var res = task.Result;
+
+                if (res != null && res.status == "success" && res.data != null && res.data.items != null)
+                {
+                    foreach (var item in res.data.items)
+                    {
+                        if (item.is_folder)
+                        {
+                            string subDir = Path.Combine(targetDir, item.name);
+                            if (!Directory.Exists(subDir)) Directory.CreateDirectory(subDir);
+                        }
+                        else
+                        {
+                            string filePath = Path.Combine(targetDir, item.name);
+                            if (!File.Exists(filePath))
+                            {
+                                string stubContent = $"[PCAccess Remote File Stub]\r\n" +
+                                                     $"FileName: {item.name}\r\n" +
+                                                     $"Size: {item.size_formatted} ({item.size_bytes} bytes)\r\n" +
+                                                     $"LastModified: {item.last_modified:yyyy-MM-dd HH:mm:ss}\r\n" +
+                                                     $"Folder: {folder.folder_name}\r\n" +
+                                                     $"HostDevice: {folder.device_name}\r\n" +
+                                                     $"\r\n(To download the complete file to this drive, press [P] in the UserLoginAgent console window.)\r\n";
+                                File.WriteAllText(filePath, stubContent);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UserAgentLogger.Warn($"Remote discovery for '{folder.folder_name}': {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// WHAT: Downloads and synchronizes all remote files from online shared folders directly into the local drive.
+        /// REASON: Task 3.2 - Allows users to pull remote files so they can be opened and edited locally.
+        /// </summary>
+        public static async System.Threading.Tasks.Task SyncAllRemoteFilesAsync(UserAgentLoginResponse user, string serverUrl, string driveLetter)
+        {
+            if (user == null || user.folders == null || user.folders.Count == 0)
+            {
+                UserAgentLogger.Warn("No folders available to sync.");
+                return;
+            }
+
+            string stagingDir = GetStagingDirectory();
+            int downloadedCount = 0;
+            long totalBytesDownloaded = 0;
+
+            UserAgentLogger.Info($"[SYNC] Starting remote files synchronization for {user.folders.Count} folder(s)...");
+
+            foreach (var folder in user.folders)
+            {
+                // Only sync remote folders (local ones already have real junctions)
+                if (!string.IsNullOrWhiteSpace(folder.local_path) && Directory.Exists(folder.local_path))
+                {
+                    continue;
+                }
+
+                if (!folder.is_device_online)
+                {
+                    UserAgentLogger.Warn($"[SYNC:SKIP] '{folder.folder_name}' is offline on '{folder.device_name}'.");
+                    continue;
+                }
+
+                if (!folder.can_download)
+                {
+                    UserAgentLogger.Warn($"[SYNC:SKIP] You do not have download permission for '{folder.folder_name}'.");
+                    continue;
+                }
+
+                string safeName = MakeSafeFolderName(folder.folder_name);
+                string targetDir = Path.Combine(stagingDir, safeName);
+                if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
+
+                UserAgentLogger.Info($"[SYNC] Querying files for '{folder.folder_name}'...");
+                var listRes = await UserApiClient.GetFolderContentsAsync(serverUrl, user.user_id, user.session_token, folder.folder_guid.ToString(), "");
+
+                if (listRes != null && listRes.status == "success" && listRes.data != null && listRes.data.items != null)
+                {
+                    var files = listRes.data.items.FindAll(i => !i.is_folder);
+                    UserAgentLogger.Info($"[SYNC] Found {files.Count} file(s) in '{folder.folder_name}'. Downloading...");
+
+                    foreach (var file in files)
+                    {
+                        string localPath = Path.Combine(targetDir, file.name);
+                        bool ok = await UserApiClient.DownloadFileAsync(serverUrl, user.user_id, folder.folder_guid.ToString(), file.relative_path, localPath);
+                        if (ok)
+                        {
+                            downloadedCount++;
+                            totalBytesDownloaded += file.size_bytes;
+                            UserAgentLogger.Success($"  -> Downloaded: {file.name} ({file.size_formatted})");
+                        }
+                        else
+                        {
+                            UserAgentLogger.Warn($"  -> Failed: {file.name}");
+                        }
+                    }
+                }
+            }
+
+            UserAgentLogger.Success($"[SYNC:COMPLETE] Successfully synced {downloadedCount} file(s) ({(totalBytesDownloaded / (1024.0 * 1024.0)):F2} MB) into {driveLetter}.");
         }
 
         private static bool MapDriveLetterInternal(string driveLetter, string stagingDir)

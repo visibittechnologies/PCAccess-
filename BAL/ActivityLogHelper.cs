@@ -8,11 +8,17 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using PCAccess.DAL;
+using PCAccess.MyFun;
 
 namespace PCAccess.BAL
 {
     public static class ActivityLogHelper
     {
+        /// <summary>
+        /// Authenticates web user via proc_user_login and verifies PBKDF2 / legacy plaintext password.
+        /// WHAT: Verifies credentials, executes constant-time comparison, and auto-upgrades plaintext to PBKDF2.
+        /// REASON: Task 2.1 - Transparent auto-upgrade of stored credentials without user disruption.
+        /// </summary>
         public static DataTable VerifyUser(string username, string password, string _ip, string _browser, out string status, out string msg)
         {
             var dt = new DataTable();
@@ -36,6 +42,32 @@ namespace PCAccess.BAL
                 dt = MySqlHelper.ExecuteDataTable("proc_user_login", parameters);
                 msg = (string)Paramsg.Value;
                 status = (string)Parastatus.Value;
+
+                // Cryptographic validation and transparent password auto-upgrade
+                if (status == "success" && dt != null && dt.Rows.Count > 0)
+                {
+                    DataRow row = dt.Rows[0];
+                    string storedPassword = dt.Columns.Contains("password") && row["password"] != DBNull.Value 
+                        ? row["password"].ToString() 
+                        : "";
+                    long userId = dt.Columns.Contains("user_id") && row["user_id"] != DBNull.Value 
+                        ? Convert.ToInt64(row["user_id"]) 
+                        : 0;
+
+                    bool isValid = PasswordSecurity.VerifyPassword(password, storedPassword, out bool needsUpgrade);
+                    if (!isValid)
+                    {
+                        status = "failed";
+                        msg = "Invalid password";
+                        return new DataTable();
+                    }
+
+                    // Auto-upgrade legacy plaintext to PBKDF2 hash on successful login
+                    if (needsUpgrade && userId > 0)
+                    {
+                        PasswordSecurity.UpgradeUserPassword(userId, password);
+                    }
+                }
             }
             catch (SqlException ex)
             { throw ex; }

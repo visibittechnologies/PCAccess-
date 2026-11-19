@@ -185,29 +185,63 @@ BEGIN
 
         -- =====================================================================
         -- ACTION 4: GET SHARED FOLDERS FOR A DEVICE
+        -- REASON: Task 1.5 - Admin sees all folders for the device.
+        --         Non-admin users only see folders they own OR have can_view = 1.
         -- =====================================================================
         IF @ActionType = 4
         BEGIN
-            SELECT 
-                f.folder_id,
-                f.folder_guid,
-                f.device_id,
-                d.device_name,
-                d.device_guid,
-                d.status AS device_status,
-                f.folder_name,
-                f.local_path,
-                f.description,
-                f.is_active,
-                f.created_date,
-                f.modified_date,
-                (SELECT COUNT(1) FROM tbl_shared_folder_permission p WHERE p.folder_id = f.folder_id) AS permission_count
-            FROM tbl_shared_folder f
-            INNER JOIN tbl_device d ON f.device_id = d.id
-            WHERE f.device_id = @device_id 
-              AND d.user_id = @user_id
-              AND f.is_active = 1
-            ORDER BY f.folder_id DESC;
+            DECLARE @is_admin_act4 BIT = 0;
+            IF EXISTS (SELECT 1 FROM tbl_user WHERE user_id = @user_id AND user_type_id = 1)
+            BEGIN
+                SET @is_admin_act4 = 1;
+            END
+
+            IF (@is_admin_act4 = 1)
+            BEGIN
+                SELECT 
+                    f.folder_id,
+                    f.folder_guid,
+                    f.device_id,
+                    d.device_name,
+                    d.device_guid,
+                    d.status AS device_status,
+                    f.folder_name,
+                    f.local_path,
+                    f.description,
+                    f.is_active,
+                    f.created_date,
+                    f.modified_date,
+                    (SELECT COUNT(1) FROM tbl_shared_folder_permission p WHERE p.folder_id = f.folder_id) AS permission_count
+                FROM tbl_shared_folder f
+                INNER JOIN tbl_device d ON f.device_id = d.id
+                WHERE f.device_id = @device_id 
+                  AND f.is_active = 1
+                ORDER BY f.folder_id DESC;
+            END
+            ELSE
+            BEGIN
+                SELECT 
+                    f.folder_id,
+                    f.folder_guid,
+                    f.device_id,
+                    d.device_name,
+                    d.device_guid,
+                    d.status AS device_status,
+                    f.folder_name,
+                    f.local_path,
+                    f.description,
+                    f.is_active,
+                    f.created_date,
+                    f.modified_date,
+                    (SELECT COUNT(1) FROM tbl_shared_folder_permission p WHERE p.folder_id = f.folder_id) AS permission_count
+                FROM tbl_shared_folder f
+                INNER JOIN tbl_device d ON f.device_id = d.id
+                LEFT JOIN tbl_shared_folder_permission p ON f.folder_id = p.folder_id AND p.user_id = @user_id
+                WHERE f.device_id = @device_id 
+                  AND (d.user_id = @user_id OR ISNULL(p.can_view, 0) = 1)
+                  AND f.is_active = 1
+                ORDER BY f.folder_id DESC;
+            END
 
             SET @status = 'success';
             SET @msg = 'Folders retrieved successfully.';
@@ -216,16 +250,24 @@ BEGIN
 
         -- =====================================================================
         -- ACTION 5: GET PERMISSIONS FOR A SHARED FOLDER
+        -- REASON: Task 1.5 - Admin can manage permissions on any folder;
+        --         regular users can only manage folders on their own devices.
         -- =====================================================================
         IF @ActionType = 5
         BEGIN
-            -- Validate ownership of parent device
-            IF NOT EXISTS (
+            DECLARE @is_admin_act5 BIT = 0;
+            IF EXISTS (SELECT 1 FROM tbl_user WHERE user_id = @user_id AND user_type_id = 1)
+            BEGIN
+                SET @is_admin_act5 = 1;
+            END
+
+            -- Validate ownership of parent device unless Admin
+            IF (@is_admin_act5 = 0 AND NOT EXISTS (
                 SELECT 1 
                 FROM tbl_shared_folder f
                 INNER JOIN tbl_device d ON f.device_id = d.id
                 WHERE f.folder_id = @folder_id AND d.user_id = @user_id
-            )
+            ))
             BEGIN
                 SET @status = 'failed';
                 SET @msg = 'Folder not found or unauthorized.';
@@ -379,15 +421,30 @@ BEGIN
                 RETURN;
             END
 
-            -- 2. Check view permissions: Device Owner OR Explicit CanView in tbl_shared_folder_permission
+            -- 2. Check view permissions: Super Admin (user_type_id = 1) OR Device Owner OR Explicit CanView in tbl_shared_folder_permission
+            DECLARE @is_admin_act9 BIT = 0;
+            IF EXISTS (SELECT 1 FROM tbl_user WHERE user_id = @user_id AND user_type_id = 1)
+            BEGIN
+                SET @is_admin_act9 = 1;
+            END
+
             DECLARE @is_owner BIT = 0;
             SET @can_view = 0;
             SET @can_download = 0;
             SET @can_upload = 0;
             SET @can_delete = 0;
 
+            -- Check if user is Super Admin (Full Superuser Access)
+            IF (@is_admin_act9 = 1)
+            BEGIN
+                SET @is_owner = 1;
+                SET @can_view = 1;
+                SET @can_download = 1;
+                SET @can_upload = 1;
+                SET @can_delete = 1;
+            END
             -- Check if user is device owner
-            IF EXISTS (
+            ELSE IF EXISTS (
                 SELECT 1 
                 FROM tbl_shared_folder f
                 INNER JOIN tbl_device d ON f.device_id = d.id
@@ -402,7 +459,7 @@ BEGIN
             END
             ELSE
             BEGIN
-                -- Check explicit permission
+                -- Standard User / Employee / Client: strictly enforce tbl_shared_folder_permission
                 SELECT 
                     @can_view = ISNULL(p.can_view, 0),
                     @can_download = ISNULL(p.can_download, 0),
@@ -454,34 +511,68 @@ BEGIN
 
         -- =====================================================================
         -- ACTION 10: GET ALL SHARED FOLDERS FOR USER (ACROSS ALL DEVICES)
-        -- REASON: Powers the DashboardOverview Shared Folders card & device counts.
-        --         Unlike ActionType 4 (single device), this fetches all devices.
+        -- REASON: Task 1.5 Multi-Tier Isolation - Super Admin sees all active folders.
+        --         Non-admin users only see folders they own OR have can_view = 1.
         -- =====================================================================
         IF @ActionType = 10
         BEGIN
-            SELECT 
-                f.folder_id,
-                f.folder_guid,
-                f.device_id,
-                d.device_name,
-                d.device_guid,
-                d.status AS device_status,
-                f.folder_name,
-                f.local_path,
-                f.description,
-                f.is_active,
-                f.created_date,
-                f.modified_date,
-                (SELECT COUNT(1) FROM tbl_shared_folder_permission p WHERE p.folder_id = f.folder_id) AS permission_count
-            FROM tbl_shared_folder f
-            INNER JOIN tbl_device d ON f.device_id = d.id
-            WHERE d.user_id = @user_id
-              AND f.is_active = 1
-              AND d.is_active = 1
-            ORDER BY f.folder_id DESC;
+            DECLARE @is_admin_act10 BIT = 0;
+            IF EXISTS (SELECT 1 FROM tbl_user WHERE user_id = @user_id AND user_type_id = 1)
+            BEGIN
+                SET @is_admin_act10 = 1;
+            END
+
+            IF (@is_admin_act10 = 1)
+            BEGIN
+                -- Super Admin sees all active folders across all active devices
+                SELECT 
+                    f.folder_id,
+                    f.folder_guid,
+                    f.device_id,
+                    d.device_name,
+                    d.device_guid,
+                    d.status AS device_status,
+                    f.folder_name,
+                    f.local_path,
+                    f.description,
+                    f.is_active,
+                    f.created_date,
+                    f.modified_date,
+                    (SELECT COUNT(1) FROM tbl_shared_folder_permission p WHERE p.folder_id = f.folder_id) AS permission_count
+                FROM tbl_shared_folder f
+                INNER JOIN tbl_device d ON f.device_id = d.id
+                WHERE f.is_active = 1
+                  AND d.is_active = 1
+                ORDER BY f.folder_id DESC;
+            END
+            ELSE
+            BEGIN
+                -- Non-Admin (Subadmin/Employee/Client): Strictly permitted folders OR owned devices
+                SELECT 
+                    f.folder_id,
+                    f.folder_guid,
+                    f.device_id,
+                    d.device_name,
+                    d.device_guid,
+                    d.status AS device_status,
+                    f.folder_name,
+                    f.local_path,
+                    f.description,
+                    f.is_active,
+                    f.created_date,
+                    f.modified_date,
+                    (SELECT COUNT(1) FROM tbl_shared_folder_permission p WHERE p.folder_id = f.folder_id) AS permission_count
+                FROM tbl_shared_folder f
+                INNER JOIN tbl_device d ON f.device_id = d.id
+                LEFT JOIN tbl_shared_folder_permission p ON f.folder_id = p.folder_id AND p.user_id = @user_id
+                WHERE f.is_active = 1
+                  AND d.is_active = 1
+                  AND (d.user_id = @user_id OR ISNULL(p.can_view, 0) = 1)
+                ORDER BY f.folder_id DESC;
+            END
 
             SET @status = 'success';
-            SET @msg = 'All user folders retrieved successfully.';
+            SET @msg = 'User accessible folders retrieved successfully.';
             RETURN;
         END
 

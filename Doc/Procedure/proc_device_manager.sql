@@ -116,20 +116,40 @@ BEGIN
             SET [is_used] = 1
             WHERE [id] = @PairingId;
 
-            -- Check if device already exists with this GUID
-            IF EXISTS (SELECT 1 FROM [dbo].[tbl_device] WHERE [device_guid] = @device_guid)
+            -- Check if device already exists with this GUID OR same device_name for this user (Task 1.2 Smart Re-link)
+            -- REASON: Preserves all existing tbl_shared_folder records and permissions attached to the device ID
+            DECLARE @ExistingDeviceId INT = NULL;
+
+            SELECT TOP 1 @ExistingDeviceId = [id]
+            FROM [dbo].[tbl_device]
+            WHERE [device_guid] = @device_guid;
+
+            -- Fallback match by device_name for this user if GUID was not matched
+            IF (@ExistingDeviceId IS NULL)
             BEGIN
+                SELECT TOP 1 @ExistingDeviceId = [id]
+                FROM [dbo].[tbl_device]
+                WHERE [user_id] = @TargetUserId 
+                  AND [device_name] = @device_name 
+                  AND [is_active] = 1;
+            END
+
+            IF (@ExistingDeviceId IS NOT NULL)
+            BEGIN
+                -- Re-link existing device record: update GUID, token, name, and activate
                 UPDATE [dbo].[tbl_device]
-                SET [device_name] = @device_name,
+                SET [device_guid] = @device_guid,
+                    [device_name] = @device_name,
                     [user_id] = @TargetUserId,
                     [device_token] = @device_token,
                     [status] = 'offline',
                     [updated_at] = GETDATE(),
                     [is_active] = 1
-                WHERE [device_guid] = @device_guid;
+                WHERE [id] = @ExistingDeviceId;
             END
             ELSE
             BEGIN
+                -- Brand new device registration
                 INSERT INTO [dbo].[tbl_device] 
                     ([device_guid], [device_name], [user_id], [device_token], [status], [last_seen], [created_at], [is_active])
                 VALUES 

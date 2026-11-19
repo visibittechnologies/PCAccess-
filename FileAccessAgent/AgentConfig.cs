@@ -28,6 +28,38 @@ namespace FileAccessAgent
         [JsonIgnore]
         public bool IsPaired => DeviceGuid != Guid.Empty && !string.IsNullOrWhiteSpace(DeviceToken);
 
+        /// <summary>
+        /// WHAT: Retrieves the permanent, immutable Windows Machine GUID from the Windows Registry.
+        /// REASON: Task 1.1 - Guarantees that re-pairing after an accidental reset, reinstall, or
+        /// config wipe always resolves to the same physical hardware identity. This allows the server
+        /// to automatically restore and preserve existing shared folders and user permissions.
+        /// </summary>
+        public static Guid GetPermanentMachineGuid()
+        {
+            try
+            {
+                using (var baseKey = Microsoft.Win32.RegistryKey.OpenBaseKey(
+                    Microsoft.Win32.RegistryHive.LocalMachine,
+                    Environment.Is64BitOperatingSystem ? Microsoft.Win32.RegistryView.Registry64 : Microsoft.Win32.RegistryView.Registry32))
+                {
+                    using (var key = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography"))
+                    {
+                        if (key != null)
+                        {
+                            object val = key.GetValue("MachineGuid");
+                            if (val != null && Guid.TryParse(val.ToString(), out Guid mg))
+                            {
+                                return mg;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return Guid.NewGuid();
+        }
+
         private static string ConfigFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agent_config.json");
 
         /// <summary>

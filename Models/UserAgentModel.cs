@@ -55,4 +55,17 @@ namespace PCAccess.Models
         public bool can_upload { get; set; }
         public bool can_delete { get; set; }
     }
+
+    /// <summary>
+    /// Request payload for UserLoginAgent to browse remote directory contents.
+    /// WHAT: Holds user ID, session token, folder GUID, and relative path.
+    /// REASON: Task 3.2 - Enables desktop client agent to browse remote shared folder contents.
+    /// </summary>
+    public class UserAgentFolderContentsRequest
+    {
+        public long user_id { get; set; }
+        public string session_token { get; set; }
+        public string folder_guid { get; set; }
+        public string relative_path { get; set; }
+    }
 }

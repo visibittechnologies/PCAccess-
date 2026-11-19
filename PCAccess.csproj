@@ -189,6 +189,7 @@
     <Compile Include="Models\MyFun\CommanUtilities.cs" />
     <Compile Include="Models\MyFun\Net.cs" />
     <Compile Include="Models\MyFun\myFunc.cs" />
+    <Compile Include="Models\MyFun\PasswordSecurity.cs" />
     <Compile Include="Models\SeoMetaModel.cs" />
     <Compile Include="Models\TablePagging.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
